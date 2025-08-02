@@ -1,0 +1,215 @@
+'use client'
+
+import React from 'react'
+import Image from 'next/image'
+import { MapPin, Clock, Bookmark, ExternalLink } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { cn, formatSalary, getDaysAgo } from '@/lib/utils'
+import type { Job } from '@/types'
+
+interface JobCardProps {
+  job: Job
+  onSave?: (jobId: string) => void
+  onApply?: (jobId: string) => void
+  className?: string
+}
+
+export const JobCard: React.FC<JobCardProps> = ({
+  job,
+  onSave,
+  onApply,
+  className
+}) => {
+  const handleSave = () => {
+    onSave?.(job.id)
+  }
+
+  const handleApply = () => {
+    onApply?.(job.id)
+  }
+
+  const getMatchScoreColor = (score?: number) => {
+    if (!score) return 'bg-gray-100 text-gray-600'
+    if (score >= 80) return 'bg-green-100 text-green-800'
+    if (score >= 60) return 'bg-yellow-100 text-yellow-800'
+    return 'bg-red-100 text-red-800'
+  }
+
+  return (
+    <Card className={cn('hover:shadow-lg transition-all duration-200 hover:-translate-y-1', className)}>
+      <CardHeader className="pb-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-3 flex-1">
+            {job.companyLogo && (
+              <div className="flex-shrink-0">
+                <Image
+                  src={job.companyLogo}
+                  alt={`${job.company} logo`}
+                  width={48}
+                  height={48}
+                  className="rounded-lg object-cover"
+                />
+              </div>
+            )}
+            
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900 truncate">
+                {job.title}
+              </h3>
+              <p className="text-sm text-gray-600 font-medium">
+                {job.company}
+              </p>
+              
+              <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                <div className="flex items-center space-x-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>{job.location}</span>
+                  {job.isRemote && (
+                    <Badge variant="secondary" className="ml-1">
+                      Remote
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="flex items-center space-x-1">
+                  <Clock className="w-4 h-4" />
+                  <span>{getDaysAgo(job.postedAt)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            {job.matchScore && (
+              <Badge 
+                variant="outline"
+                className={cn('text-xs font-medium', getMatchScoreColor(job.matchScore))}
+              >
+                {job.matchScore}% Match
+              </Badge>
+            )}
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSave}
+              className={cn(
+                'p-2',
+                job.isSaved && 'text-blue-600 bg-blue-50'
+              )}
+            >
+              <Bookmark className={cn('w-4 h-4', job.isSaved && 'fill-current')} />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="pt-0">
+        <div className="space-y-4">
+          {/* Job Type & Experience Level */}
+          <div className="flex items-center space-x-2">
+            <Badge variant="outline">{job.jobType.replace('_', ' ')}</Badge>
+            <Badge variant="outline">{job.experienceLevel}</Badge>
+          </div>
+          
+          {/* Salary */}
+          {job.salary && (
+            <div className="text-sm">
+              <span className="font-medium text-gray-900">
+                {formatSalary(job.salary.min, job.salary.max, job.salary.currency)}
+              </span>
+            </div>
+          )}
+          
+          {/* Job Description */}
+          <p className="text-sm text-gray-600 line-clamp-3">
+            {job.description}
+          </p>
+          
+          {/* Skills */}
+          {job.skills.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {job.skills.slice(0, 5).map((skill) => (
+                <Badge
+                  key={skill}
+                  variant="secondary"
+                  className="text-xs"
+                >
+                  {skill}
+                </Badge>
+              ))}
+              {job.skills.length > 5 && (
+                <Badge variant="secondary" className="text-xs">
+                  +{job.skills.length - 5} more
+                </Badge>
+              )}
+            </div>
+          )}
+          
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between pt-4 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-1"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>View Details</span>
+            </Button>
+            
+            <Button
+              onClick={handleApply}
+              disabled={job.hasApplied}
+              size="sm"
+              className={cn(
+                'min-w-[80px]',
+                job.hasApplied && 'bg-green-100 text-green-800 hover:bg-green-100'
+              )}
+            >
+              {job.hasApplied ? 'Applied' : 'Apply Now'}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Loading skeleton component
+export const JobCardSkeleton = () => {
+  return (
+    <Card className="animate-pulse">
+      <CardHeader className="pb-4">
+        <div className="flex items-start space-x-3">
+          <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="h-5 bg-gray-200 rounded w-3/4" />
+            <div className="h-4 bg-gray-200 rounded w-1/2" />
+            <div className="h-3 bg-gray-200 rounded w-2/3" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          <div className="flex space-x-2">
+            <div className="h-6 bg-gray-200 rounded w-20" />
+            <div className="h-6 bg-gray-200 rounded w-16" />
+          </div>
+          <div className="h-4 bg-gray-200 rounded w-32" />
+          <div className="space-y-2">
+            <div className="h-3 bg-gray-200 rounded w-full" />
+            <div className="h-3 bg-gray-200 rounded w-5/6" />
+            <div className="h-3 bg-gray-200 rounded w-3/4" />
+          </div>
+          <div className="flex justify-between pt-4">
+            <div className="h-8 bg-gray-200 rounded w-24" />
+            <div className="h-8 bg-gray-200 rounded w-20" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
