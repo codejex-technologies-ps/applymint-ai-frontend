@@ -292,56 +292,424 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 2. **Create custom CSS classes for repeated patterns**
 3. **Use CSS variables for theming**
 4. **Implement responsive design with mobile-first approach**
+5. **Always use semantic color variables instead of hardcoded colors**
+
+#### Color System Guidelines
+
+Our project uses a comprehensive color system defined in `globals.css`. Always use these semantic color variables instead of hardcoded colors:
+
+##### Primary Color Variables
+```css
+/* Use these for main brand elements */
+bg-primary          /* Primary background */
+text-primary        /* Primary text */
+bg-primary-foreground  /* Text/content on primary background */
+text-primary-foreground /* Text on primary background */
+border-primary      /* Primary borders */
+```
+
+##### Secondary & Accent Colors
+```css
+/* Use these for secondary elements */
+bg-secondary        /* Secondary background */
+text-secondary      /* Secondary text */
+bg-secondary-foreground
+text-secondary-foreground
+
+/* Use these for highlighted/accent elements */
+bg-accent          /* Accent background */
+text-accent        /* Accent text */
+bg-accent-foreground
+text-accent-foreground
+```
+
+##### Muted & Neutral Colors
+```css
+/* Use these for subdued content */
+bg-muted           /* Muted background */
+text-muted         /* Muted text */
+bg-muted-foreground
+text-muted-foreground
+```
+
+##### Card & Layout Colors
+```css
+/* Use these for cards and containers */
+bg-card            /* Card background */
+text-card          /* Card text */
+bg-card-foreground
+text-card-foreground
+
+/* Use these for popovers and overlays */
+bg-popover         /* Popover background */
+text-popover       /* Popover text */
+bg-popover-foreground
+text-popover-foreground
+```
+
+##### Interactive & State Colors
+```css
+/* Use these for destructive actions */
+bg-destructive     /* Delete/error background */
+text-destructive   /* Error text */
+bg-destructive-foreground
+text-destructive-foreground
+
+/* Use these for borders and inputs */
+border-border      /* Default border color */
+border-input       /* Input border color */
+ring-ring          /* Focus ring color */
+```
+
+##### Chart & Data Visualization Colors
+```css
+/* Use these for charts and data visualization */
+bg-chart-1         /* First chart color */
+bg-chart-2         /* Second chart color */
+bg-chart-3         /* Third chart color */
+bg-chart-4         /* Fourth chart color */
+bg-chart-5         /* Fifth chart color */
+```
+
+##### Sidebar Colors (for dashboard layouts)
+```css
+/* Use these for sidebar components */
+bg-sidebar         /* Sidebar background */
+text-sidebar       /* Sidebar text */
+bg-sidebar-primary /* Sidebar primary elements */
+text-sidebar-primary
+bg-sidebar-accent  /* Sidebar accent elements */
+text-sidebar-accent
+border-sidebar-border /* Sidebar borders */
+```
+
+#### Component Examples Using Color Variables
 
 ```typescript
-// ✅ Good - Using Shadcn/ui components
+// ✅ Good - Using semantic color variables
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const JobCard = ({ job }: { job: Job }) => {
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="bg-card text-card-foreground border-border hover:shadow-lg transition-shadow">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">{job.title}</CardTitle>
+        <CardTitle className="text-primary font-semibold">{job.title}</CardTitle>
+        <p className="text-muted-foreground text-sm">{job.company}</p>
       </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground">{job.company}</p>
-        <Button className="mt-4 w-full">Apply Now</Button>
+      <CardContent className="space-y-4">
+        <p className="text-card-foreground">{job.description}</p>
+        
+        {/* Status indicators using semantic colors */}
+        <div className="flex items-center space-x-2">
+          {job.isUrgent && (
+            <span className="bg-destructive text-destructive-foreground px-2 py-1 rounded-sm text-xs">
+              Urgent
+            </span>
+          )}
+          {job.isRemote && (
+            <span className="bg-accent text-accent-foreground px-2 py-1 rounded-sm text-xs">
+              Remote
+            </span>
+          )}
+        </div>
+        
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full">
+          Apply Now
+        </Button>
       </CardContent>
     </Card>
   )
 }
+
+// ✅ Good - Dashboard component with sidebar colors
+export const DashboardSidebar = () => {
+  return (
+    <aside className="bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
+      <nav className="p-4 space-y-2">
+        <a 
+          href="/dashboard" 
+          className="flex items-center space-x-2 bg-sidebar-primary text-sidebar-primary-foreground px-3 py-2 rounded-md"
+        >
+          <DashboardIcon />
+          <span>Dashboard</span>
+        </a>
+        <a 
+          href="/jobs" 
+          className="flex items-center space-x-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground px-3 py-2 rounded-md"
+        >
+          <JobsIcon />
+          <span>Jobs</span>
+        </a>
+      </nav>
+    </aside>
+  )
+}
+
+// ✅ Good - Form with proper input styling
+export const LoginForm = () => {
+  return (
+    <form className="bg-card text-card-foreground p-6 rounded-lg border border-border space-y-4">
+      <div>
+        <label className="text-primary font-medium">Email</label>
+        <input 
+          type="email"
+          className="w-full mt-1 px-3 py-2 bg-background text-foreground border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-ring"
+        />
+      </div>
+      
+      <Button 
+        type="submit"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 w-full"
+      >
+        Sign In
+      </Button>
+      
+      <p className="text-muted-foreground text-sm text-center">
+        Don't have an account? 
+        <a href="/register" className="text-primary hover:text-primary/80 ml-1">
+          Sign up
+        </a>
+      </p>
+    </form>
+  )
+}
+```
+
+#### Color Usage Guidelines
+
+**DO:**
+- ✅ Use `text-primary` for important headings and primary actions
+- ✅ Use `text-muted-foreground` for secondary text and descriptions
+- ✅ Use `bg-card` and `text-card-foreground` for card components
+- ✅ Use `bg-accent` and `text-accent-foreground` for highlighting
+- ✅ Use `bg-destructive` and `text-destructive-foreground` for error states
+- ✅ Use chart colors (`bg-chart-1` through `bg-chart-5`) for data visualization
+- ✅ Use sidebar colors for dashboard navigation components
+
+**DON'T:**
+- ❌ Don't use hardcoded colors like `bg-blue-500` or `text-red-600`
+- ❌ Don't use arbitrary color values like `bg-[#3B82F6]`
+- ❌ Don't mix semantic variables with hardcoded colors in the same component
+
+#### Dark Mode Considerations
+
+Our color system automatically supports dark mode through CSS variables. When using semantic color variables:
+
+```typescript
+// ✅ This automatically works in both light and dark modes
+<div className="bg-background text-foreground">
+  <h1 className="text-primary">Welcome to ApplyMint AI</h1>
+  <p className="text-muted-foreground">Your AI-powered job search companion</p>
+</div>
+
+// ❌ This doesn't respect dark mode
+<div className="bg-white text-black">
+  <h1 className="text-blue-600">Welcome to ApplyMint AI</h1>
+  <p className="text-gray-500">Your AI-powered job search companion</p>
+</div>
+```
+
+#### Color Variable Reference Guide
+
+For quick reference, here are the most commonly used color combinations:
+
+| Purpose | Background | Text | Border | Example Usage |
+|---------|------------|------|--------|---------------|
+| **Main Content** | `bg-background` | `text-foreground` | `border-border` | Page backgrounds, main content areas |
+| **Cards/Containers** | `bg-card` | `text-card-foreground` | `border-border` | Job cards, profile sections, forms |
+| **Primary Actions** | `bg-primary` | `text-primary-foreground` | `border-primary` | Submit buttons, main CTAs |
+| **Secondary Actions** | `bg-secondary` | `text-secondary-foreground` | `border-border` | Cancel buttons, secondary CTAs |
+| **Highlighted Content** | `bg-accent` | `text-accent-foreground` | `border-accent` | Featured items, hover states |
+| **Subtle Content** | `bg-muted` | `text-muted-foreground` | `border-border` | Disabled states, secondary info |
+| **Destructive Actions** | `bg-destructive` | `text-destructive-foreground` | `border-destructive` | Delete buttons, error states |
+| **Success States** | `bg-chart-2` with opacity | `text-chart-2` | `border-chart-2/20` | Success messages, completed tasks |
+| **Warning States** | `bg-chart-4` with opacity | `text-chart-4` | `border-chart-4/20` | Warning messages, pending states |
+| **Navigation (Sidebar)** | `bg-sidebar` | `text-sidebar-foreground` | `border-sidebar-border` | Dashboard navigation |
+
+#### Opacity Usage with Colors
+
+Use opacity modifiers to create subtle variations:
+
+```typescript
+// ✅ Using opacity for subtle backgrounds
+<div className="bg-primary/10 text-primary border border-primary/20">
+  <p>Primary colored section with subtle background</p>
+</div>
+
+<div className="bg-chart-1/5 text-chart-1 border border-chart-1/10">
+  <p>Chart color with very subtle background</p>
+</div>
+
+// ✅ Hover states with opacity
+<button className="bg-primary text-primary-foreground hover:bg-primary/90">
+  Hover effect with opacity
+</button>
 ```
 
 ### Custom Utility Classes
 
-Create custom utility classes in `globals.css`:
+Create custom utility classes in `globals.css` using the semantic color variables:
 
 ```css
-/* Custom utility classes */
+/* Custom utility classes using semantic colors */
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-chart {
+    @apply bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent;
   }
   
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1 hover:border-primary/20;
   }
   
   .skeleton {
-    @apply animate-pulse bg-gray-200 dark:bg-gray-700 rounded;
+    @apply animate-pulse bg-muted rounded;
+  }
+  
+  .button-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-ring;
+  }
+  
+  .button-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border;
+  }
+  
+  .button-destructive {
+    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
+  }
+  
+  .input-field {
+    @apply bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20;
+  }
+  
+  .status-success {
+    @apply bg-chart-2 text-chart-2 bg-opacity-10 border border-chart-2/20;
+  }
+  
+  .status-warning {
+    @apply bg-chart-4 text-chart-4 bg-opacity-10 border border-chart-4/20;
+  }
+  
+  .status-error {
+    @apply bg-destructive text-destructive-foreground bg-opacity-10 border border-destructive/20;
   }
 }
 
-/* Component specific styles */
+/* Component specific styles using semantic colors */
 @layer components {
   .job-card {
-    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 card-hover;
+    @apply bg-card text-card-foreground border border-border rounded-lg p-6 card-hover;
   }
   
   .dashboard-grid {
     @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
   }
+  
+  .nav-item {
+    @apply flex items-center space-x-2 px-3 py-2 rounded-md transition-colors;
+    @apply hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  .nav-item-active {
+    @apply bg-primary text-primary-foreground;
+  }
+  
+  .sidebar-nav {
+    @apply bg-sidebar text-sidebar-foreground border-r border-sidebar-border;
+  }
+  
+  .form-section {
+    @apply bg-card text-card-foreground p-6 rounded-lg border border-border space-y-4;
+  }
+  
+  .stats-card {
+    @apply bg-card text-card-foreground p-6 rounded-lg border border-border;
+    @apply hover:shadow-md transition-shadow;
+  }
+  
+  .badge-primary {
+    @apply bg-primary text-primary-foreground px-2 py-1 rounded-sm text-xs font-medium;
+  }
+  
+  .badge-secondary {
+    @apply bg-secondary text-secondary-foreground px-2 py-1 rounded-sm text-xs font-medium;
+  }
+  
+  .badge-accent {
+    @apply bg-accent text-accent-foreground px-2 py-1 rounded-sm text-xs font-medium;
+  }
+  
+  .alert-info {
+    @apply bg-chart-1 text-chart-1 bg-opacity-10 border border-chart-1/20 p-4 rounded-md;
+  }
+  
+  .alert-success {
+    @apply bg-chart-2 text-chart-2 bg-opacity-10 border border-chart-2/20 p-4 rounded-md;
+  }
+  
+  .alert-warning {
+    @apply bg-chart-4 text-chart-4 bg-opacity-10 border border-chart-4/20 p-4 rounded-md;
+  }
+  
+  .alert-error {
+    @apply bg-destructive text-destructive-foreground bg-opacity-10 border border-destructive/20 p-4 rounded-md;
+  }
+}
+```
+
+#### Usage Examples with Custom Classes
+
+```typescript
+// ✅ Using custom utility classes with semantic colors
+export const DashboardCard = ({ title, value, trend }: StatsCardProps) => {
+  return (
+    <div className="stats-card">
+      <h3 className="text-muted-foreground text-sm font-medium">{title}</h3>
+      <div className="flex items-center justify-between mt-2">
+        <span className="text-primary text-2xl font-bold">{value}</span>
+        <span className={cn(
+          "text-xs px-2 py-1 rounded",
+          trend > 0 ? "status-success" : "status-error"
+        )}>
+          {trend > 0 ? "+" : ""}{trend}%
+        </span>
+      </div>
+    </div>
+  )
+}
+
+export const JobStatusBadge = ({ status }: { status: JobStatus }) => {
+  const statusStyles = {
+    applied: "badge-primary",
+    interview: "badge-accent", 
+    rejected: "bg-destructive text-destructive-foreground px-2 py-1 rounded-sm text-xs",
+    offer: "status-success px-2 py-1 rounded-sm text-xs"
+  }
+  
+  return (
+    <span className={statusStyles[status]}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  )
+}
+
+export const AlertMessage = ({ type, message }: AlertProps) => {
+  const alertClasses = {
+    info: "alert-info",
+    success: "alert-success", 
+    warning: "alert-warning",
+    error: "alert-error"
+  }
+  
+  return (
+    <div className={alertClasses[type]}>
+      <p className="text-sm">{message}</p>
+    </div>
+  )
 }
 ```
 

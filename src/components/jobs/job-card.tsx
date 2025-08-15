@@ -32,14 +32,14 @@ export const JobCard: React.FC<JobCardProps> = ({
   }
 
   const getMatchScoreColor = (score?: number) => {
-    if (!score) return 'bg-gray-100 text-gray-600'
-    if (score >= 80) return 'bg-green-100 text-green-800'
-    if (score >= 60) return 'bg-yellow-100 text-yellow-800'
-    return 'bg-red-100 text-red-800'
+    if (!score) return 'bg-muted text-muted-foreground'
+    if (score >= 80) return 'bg-chart-2 text-chart-2 bg-opacity-10 border border-chart-2/20'
+    if (score >= 60) return 'bg-chart-4 text-chart-4 bg-opacity-10 border border-chart-4/20'
+    return 'bg-destructive text-destructive-foreground bg-opacity-10 border border-destructive/20'
   }
 
   return (
-    <Card className={cn('hover:shadow-lg transition-all duration-200 hover:-translate-y-1', className)}>
+    <Card className={cn('bg-card text-card-foreground border-border hover:shadow-lg transition-all duration-200 hover:-translate-y-1', className)}>
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3 flex-1">
@@ -56,19 +56,19 @@ export const JobCard: React.FC<JobCardProps> = ({
             )}
             
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-gray-900 truncate">
+              <h3 className="text-lg font-semibold text-primary truncate">
                 {job.title}
               </h3>
-              <p className="text-sm text-gray-600 font-medium">
+              <p className="text-sm text-muted-foreground font-medium">
                 {job.company}
               </p>
               
-              <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+              <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
                 <div className="flex items-center space-x-1">
                   <MapPin className="w-4 h-4" />
                   <span>{job.location}</span>
                   {job.isRemote && (
-                    <Badge variant="secondary" className="ml-1">
+                    <Badge variant="secondary" className="ml-1 bg-accent text-accent-foreground">
                       Remote
                     </Badge>
                   )}
@@ -97,8 +97,8 @@ export const JobCard: React.FC<JobCardProps> = ({
               size="sm"
               onClick={handleSave}
               className={cn(
-                'p-2',
-                job.isSaved && 'text-blue-600 bg-blue-50'
+                'p-2 hover:bg-accent hover:text-accent-foreground',
+                job.isSaved && 'text-primary bg-primary/10'
               )}
             >
               <Bookmark className={cn('w-4 h-4', job.isSaved && 'fill-current')} />
@@ -111,21 +111,25 @@ export const JobCard: React.FC<JobCardProps> = ({
         <div className="space-y-4">
           {/* Job Type & Experience Level */}
           <div className="flex items-center space-x-2">
-            <Badge variant="outline">{job.jobType.replace('_', ' ')}</Badge>
-            <Badge variant="outline">{job.experienceLevel}</Badge>
+            <Badge variant="outline" className="bg-secondary text-secondary-foreground border-border">
+              {job.jobType.replace('_', ' ')}
+            </Badge>
+            <Badge variant="outline" className="bg-secondary text-secondary-foreground border-border">
+              {job.experienceLevel}
+            </Badge>
           </div>
           
           {/* Salary */}
           {job.salary && (
             <div className="text-sm">
-              <span className="font-medium text-gray-900">
+              <span className="font-medium text-primary">
                 {formatSalary(job.salary.min, job.salary.max, job.salary.currency)}
               </span>
             </div>
           )}
           
           {/* Job Description */}
-          <p className="text-sm text-gray-600 line-clamp-3">
+          <p className="text-sm text-card-foreground line-clamp-3">
             {job.description}
           </p>
           
@@ -136,13 +140,13 @@ export const JobCard: React.FC<JobCardProps> = ({
                 <Badge
                   key={skill}
                   variant="secondary"
-                  className="text-xs"
+                  className="text-xs bg-muted text-muted-foreground"
                 >
                   {skill}
                 </Badge>
               ))}
               {job.skills.length > 5 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
                   +{job.skills.length - 5} more
                 </Badge>
               )}
@@ -150,11 +154,11 @@ export const JobCard: React.FC<JobCardProps> = ({
           )}
           
           {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-4 border-t">
+          <div className="flex items-center justify-between pt-4 border-t border-border">
             <Button
               variant="outline"
               size="sm"
-              className="flex items-center space-x-1"
+              className="flex items-center space-x-1 border-border hover:bg-accent hover:text-accent-foreground"
             >
               <ExternalLink className="w-4 h-4" />
               <span>View Details</span>
@@ -166,7 +170,9 @@ export const JobCard: React.FC<JobCardProps> = ({
               size="sm"
               className={cn(
                 'min-w-[80px]',
-                job.hasApplied && 'bg-green-100 text-green-800 hover:bg-green-100'
+                job.hasApplied 
+                  ? 'bg-chart-2 text-chart-2 bg-opacity-10 border border-chart-2/20 hover:bg-chart-2 hover:bg-opacity-20' 
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
               )}
             >
               {job.hasApplied ? 'Applied' : 'Apply Now'}
@@ -181,32 +187,32 @@ export const JobCard: React.FC<JobCardProps> = ({
 // Loading skeleton component
 export const JobCardSkeleton = () => {
   return (
-    <Card className="animate-pulse">
+    <Card className="animate-pulse bg-card border-border">
       <CardHeader className="pb-4">
         <div className="flex items-start space-x-3">
-          <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0" />
+          <div className="w-12 h-12 bg-muted rounded-lg flex-shrink-0" />
           <div className="flex-1 space-y-2">
-            <div className="h-5 bg-gray-200 rounded w-3/4" />
-            <div className="h-4 bg-gray-200 rounded w-1/2" />
-            <div className="h-3 bg-gray-200 rounded w-2/3" />
+            <div className="h-5 bg-muted rounded w-3/4" />
+            <div className="h-4 bg-muted rounded w-1/2" />
+            <div className="h-3 bg-muted rounded w-2/3" />
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           <div className="flex space-x-2">
-            <div className="h-6 bg-gray-200 rounded w-20" />
-            <div className="h-6 bg-gray-200 rounded w-16" />
+            <div className="h-6 bg-muted rounded w-20" />
+            <div className="h-6 bg-muted rounded w-16" />
           </div>
-          <div className="h-4 bg-gray-200 rounded w-32" />
+          <div className="h-4 bg-muted rounded w-32" />
           <div className="space-y-2">
-            <div className="h-3 bg-gray-200 rounded w-full" />
-            <div className="h-3 bg-gray-200 rounded w-5/6" />
-            <div className="h-3 bg-gray-200 rounded w-3/4" />
+            <div className="h-3 bg-muted rounded w-full" />
+            <div className="h-3 bg-muted rounded w-5/6" />
+            <div className="h-3 bg-muted rounded w-3/4" />
           </div>
-          <div className="flex justify-between pt-4">
-            <div className="h-8 bg-gray-200 rounded w-24" />
-            <div className="h-8 bg-gray-200 rounded w-20" />
+          <div className="flex justify-between pt-4 border-t border-border">
+            <div className="h-8 bg-muted rounded w-24" />
+            <div className="h-8 bg-muted rounded w-20" />
           </div>
         </div>
       </CardContent>
