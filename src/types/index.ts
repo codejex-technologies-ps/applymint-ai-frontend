@@ -277,7 +277,7 @@ export interface RecentActivity {
   title: string;
   description: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Notification types
@@ -290,7 +290,8 @@ export interface Notification {
   isRead: boolean;
   createdAt: Date;
   actionUrl?: string;
-  metadata?: Record<string, any>;
+  // Use unknown for flexible metadata type
+  metadata?: Record<string, unknown>;
 }
 
 // Common utility types

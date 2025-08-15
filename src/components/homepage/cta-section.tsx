@@ -52,7 +52,7 @@ export const CTASection: React.FC = () => {
 
           {/* Subheading */}
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-12">
-            Join thousands of professionals who've transformed their careers with our AI-powered job matching platform. 
+            Join thousands of professionals who&apos;ve transformed their careers with our AI-powered job matching platform. 
             Start your journey to career success today.
           </p>
 

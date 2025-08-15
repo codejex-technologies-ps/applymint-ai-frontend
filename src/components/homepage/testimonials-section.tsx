@@ -158,7 +158,7 @@ export const TestimonialsSection = () => {
                 
                 {/* Quote */}
                 <blockquote className="text-card-foreground leading-relaxed mb-6 text-sm">
-                  "{testimonial.quote}"
+                  &quot;{testimonial.quote}&quot;
                 </blockquote>
                 
                 {/* Author Info */}

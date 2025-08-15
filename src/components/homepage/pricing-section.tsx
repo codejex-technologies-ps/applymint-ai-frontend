@@ -20,10 +20,7 @@ const pricingPlans = [
       "Email notifications",
       "Standard support",
     ],
-    limitations: [
-      "Limited to 20 applications per month",
-      "Basic AI insights",
-    ],
+    limitations: ["Limited to 20 applications per month", "Basic AI insights"],
     cta: "Get Started Free",
     popular: false,
     icon: Star,
@@ -75,19 +72,23 @@ const pricingPlans = [
 const faqItems = [
   {
     question: "How does the AI job matching work?",
-    answer: "Our AI analyzes your resume, skills, experience, and preferences to match you with relevant job opportunities. It learns from your feedback to improve matches over time.",
+    answer:
+      "Our AI analyzes your resume, skills, experience, and preferences to match you with relevant job opportunities. It learns from your feedback to improve matches over time.",
   },
   {
     question: "Can I cancel my subscription anytime?",
-    answer: "Yes, you can cancel your subscription at any time. You'll continue to have access to premium features until the end of your billing period.",
+    answer:
+      "Yes, you can cancel your subscription at any time. You'll continue to have access to premium features until the end of your billing period.",
   },
   {
     question: "Is my data secure?",
-    answer: "Absolutely. We use enterprise-grade security measures to protect your personal information and job search data. Your data is encrypted and never shared without your consent.",
+    answer:
+      "Absolutely. We use enterprise-grade security measures to protect your personal information and job search data. Your data is encrypted and never shared without your consent.",
   },
   {
     question: "Do you offer refunds?",
-    answer: "We offer a 30-day money-back guarantee for all paid plans. If you're not satisfied, contact our support team for a full refund.",
+    answer:
+      "We offer a 30-day money-back guarantee for all paid plans. If you're not satisfied, contact our support team for a full refund.",
   },
 ];
 
@@ -107,7 +108,8 @@ export const PricingSection: React.FC = () => {
             </span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Start free and upgrade as your job search accelerates. All plans include our core AI matching technology.
+            Start free and upgrade as your job search accelerates. All plans
+            include our core AI matching technology.
           </p>
         </div>
 
@@ -143,7 +145,9 @@ export const PricingSection: React.FC = () => {
                     >
                       <IconComponent
                         className={`h-6 w-6 ${
-                          plan.popular ? "text-primary-foreground" : "text-accent"
+                          plan.popular
+                            ? "text-primary-foreground"
+                            : "text-accent"
                         }`}
                       />
                     </div>
@@ -157,7 +161,9 @@ export const PricingSection: React.FC = () => {
                     </span>
                     <span className="text-muted-foreground">{plan.period}</span>
                   </div>
-                  <p className="text-muted-foreground mt-2">{plan.description}</p>
+                  <p className="text-muted-foreground mt-2">
+                    {plan.description}
+                  </p>
                 </CardHeader>
 
                 <CardContent className="space-y-6">
@@ -183,7 +189,10 @@ export const PricingSection: React.FC = () => {
                       </p>
                       <div className="space-y-2">
                         {plan.limitations.map((limitation, index) => (
-                          <div key={index} className="flex items-center space-x-3">
+                          <div
+                            key={index}
+                            className="flex items-center space-x-3"
+                          >
                             <div className="w-1 h-1 bg-muted-foreground rounded-full flex-shrink-0 mt-2" />
                             <span className="text-xs text-muted-foreground">
                               {limitation}
@@ -218,8 +227,12 @@ export const PricingSection: React.FC = () => {
               Frequently Asked Questions
             </h3>
             <p className="text-muted-foreground">
-              Got questions? We've got answers. Can't find what you're looking for?
-              <a href="/contact" className="text-primary hover:text-primary/80 ml-1">
+              Got questions? We&#39;ve got answers. Can&#39;t find what
+              you&#39;re looking for?
+              <a
+                href="/contact"
+                className="text-primary hover:text-primary/80 ml-1"
+              >
                 Contact our support team
               </a>
               .
@@ -249,8 +262,8 @@ export const PricingSection: React.FC = () => {
               Ready to Transform Your Job Search?
             </h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Join thousands of professionals who've accelerated their careers with AI-powered job matching.
-              Start your free trial today.
+              Join thousands of professionals who&#39;ve accelerated their
+              careers with AI-powered job matching. Start your free trial today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button

@@ -175,7 +175,7 @@ export default function TermsOfServicePage() {
               Terms of Service
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              These terms govern your use of ApplyMint AI's job search platform and services.
+              These terms govern your use of ApplyMint AI&apos;s job search platform and services.
               Please read them carefully.
             </p>
             <div className="mt-6 text-sm text-muted-foreground">
@@ -195,7 +195,7 @@ export default function TermsOfServicePage() {
             </CardHeader>
             <CardContent className="prose prose-sm max-w-none text-card-foreground">
               <p>
-                Welcome to ApplyMint AI! These Terms of Service ("Terms") constitute a legally binding 
+                Welcome to ApplyMint AI! These Terms of Service (&quot;Terms&quot;) constitute a legally binding 
                 agreement between you and ApplyMint AI regarding your use of our AI-powered job search 
                 platform and related services.
               </p>
