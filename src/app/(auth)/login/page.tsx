@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { LoginForm } from '@/components/auth/login-form'
+// import { LoginForm } from '@/components/auth/login-form'
 
 export const metadata: Metadata = {
   title: 'Login | ApplyMint AI',
@@ -19,7 +19,7 @@ export default function LoginPage() {
           </p>
         </div>
         
-        <LoginForm />
+        {/* <LoginForm /> */}
         
         <div className="text-center">
           <p className="text-sm text-gray-600">
