@@ -1,21 +1,22 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { Menu, X, Leaf } from 'lucide-react'
+import React, { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Menu, X, Leaf } from "lucide-react";
+import { ModeToggle } from "../ui/mode-toggle";
 
 export const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { label: 'Features', href: '#features' },
-    { label: 'How it Works', href: '#how-it-works' },
-    { label: 'Testimonials', href: '#testimonials' },
-    { label: 'Pricing', href: '/pricing' },
-    { label: 'About', href: '/about' },
-  ]
+    { label: "Features", href: "#features" },
+    { label: "How it Works", href: "#how-it-works" },
+    { label: "Testimonials", href: "#testimonials" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "About", href: "/about" },
+  ];
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
@@ -40,6 +41,7 @@ export const Navbar = () => {
                 {item.label}
               </Link>
             ))}
+            <ModeToggle />
           </div>
 
           {/* Desktop CTA Buttons */}
@@ -67,7 +69,11 @@ export const Navbar = () => {
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-muted-foreground"
             >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isMenuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </Button>
           </div>
         </div>
@@ -106,5 +112,5 @@ export const Navbar = () => {
         )}
       </div>
     </nav>
-  )
-}
+  );
+};
