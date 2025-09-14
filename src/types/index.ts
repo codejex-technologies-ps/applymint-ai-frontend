@@ -1,17 +1,40 @@
 // Base types
+// This interface matches the Supabase auth.users table
+export interface AuthUser {
+  id: string;
+  email: string;
+  email_confirmed_at?: string;
+  last_sign_in_at?: string;
+  role?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// This interface matches our profiles table schema
+export interface UserProfile {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone_number: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Computed interface that combines auth and profile data for the frontend
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  avatar?: string;
-  role: "USER" | "ADMIN";
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
   isEmailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface UserProfile {
+// Extended profile data (for future features like resume, preferences, etc.)
+export interface ExtendedUserProfile {
   id: string;
   userId: string;
   bio?: string;
@@ -19,8 +42,7 @@ export interface UserProfile {
   website?: string;
   linkedinUrl?: string;
   githubUrl?: string;
-  phone?: string;
-  preferences: UserPreferences;
+  preferences?: UserPreferences;
   resume?: Resume;
   createdAt: Date;
   updatedAt: Date;
@@ -222,16 +244,6 @@ export interface JobSearchResponse {
 }
 
 // Authentication types
-export interface AuthUser {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  avatar?: string;
-  role: "USER" | "ADMIN";
-  isEmailVerified: boolean;
-}
-
 export interface LoginCredentials {
   email: string;
   password: string;

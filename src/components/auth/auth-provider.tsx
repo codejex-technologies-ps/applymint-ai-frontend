@@ -1,21 +1,29 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { User } from '@supabase/supabase-js'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { User as SupabaseUser } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
+import { profilesService } from '@/lib/services/profiles'
+import type { User, UserProfile } from '@/types'
 
 type AuthContextType = {
   user: User | null
+  profile: UserProfile | null
+  supabaseUser: SupabaseUser | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error?: string }>
   signUp: (email: string, password: string, metadata?: object) => Promise<{ error?: string }>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<{ error?: string }>
+  updateProfile: (updates: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>) => Promise<{ error?: string }>
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   
@@ -25,6 +33,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   // Only create client if environment variables are available
   const supabase = (supabaseUrl && supabaseKey) ? createClient() : null
+
+  // Function to fetch and set profile data
+  const fetchProfile = useCallback(async () => {
+    try {
+      const profileData = await profilesService.getCurrentProfile()
+      setProfile(profileData)
+      
+      if (profileData && supabaseUser) {
+        const userData = profilesService.convertToUser(
+          profileData, 
+          !!supabaseUser.email_confirmed_at
+        )
+        setUser(userData)
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+      setProfile(null)
+      setUser(null)
+    }
+  }, [supabaseUser])
+
+  const refreshProfile = async () => {
+    if (supabaseUser) {
+      await fetchProfile()
+    }
+  }
 
   useEffect(() => {
     // Don't initialize if Supabase is not configured
@@ -36,7 +70,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
+      const authUser = session?.user ?? null
+      setSupabaseUser(authUser)
+      
+      if (authUser) {
+        await fetchProfile()
+      } else {
+        setProfile(null)
+        setUser(null)
+      }
+      
       setLoading(false)
     }
 
@@ -45,13 +88,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user ?? null)
+        const authUser = session?.user ?? null
+        setSupabaseUser(authUser)
+        
+        if (authUser) {
+          await fetchProfile()
+        } else {
+          setProfile(null)
+          setUser(null)
+        }
+        
         setLoading(false)
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase])
+  }, [supabase, fetchProfile])
 
   const signIn = async (email: string, password: string) => {
     if (!supabase) {
@@ -123,13 +175,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const updateProfile = async (updates: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>) => {
+    try {
+      const updatedProfile = await profilesService.updateProfile(updates)
+      if (updatedProfile) {
+        setProfile(updatedProfile)
+        if (supabaseUser) {
+          const userData = profilesService.convertToUser(
+            updatedProfile,
+            !!supabaseUser.email_confirmed_at
+          )
+          setUser(userData)
+        }
+      }
+      return {}
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : 'Failed to update profile' }
+    }
+  }
+
   const value = {
     user,
+    profile,
+    supabaseUser,
     loading,
     signIn,
     signUp,
     signOut,
     resetPassword,
+    updateProfile,
+    refreshProfile,
   }
 
   return (
