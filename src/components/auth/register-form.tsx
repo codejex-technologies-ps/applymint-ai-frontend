@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -46,8 +47,8 @@ export function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
   const { signUp } = useAuth()
+  const router = useRouter()
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -85,43 +86,13 @@ export function RegisterForm() {
         return
       }
 
-      setSuccess(true)
-      // Note: User will need to verify email before they can sign in
+      // Redirect to verification page with email parameter
+      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
     } catch {
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-chart-2/10 rounded-full mb-4">
-            <Check className="w-8 h-8 text-chart-2" />
-          </div>
-          <h2 className="text-3xl font-bold text-primary">Check your email</h2>
-          <p className="text-muted-foreground">
-            We&apos;ve sent a verification link to your email address. Please check your inbox and click the link to activate your account.
-          </p>
-          <div className="space-y-4">
-            <Button asChild className="w-full">
-              <Link href="/login">Return to sign in</Link>
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Didn&apos;t receive the email?{' '}
-              <button 
-                className="text-primary hover:text-primary/80 font-medium"
-                onClick={() => setSuccess(false)}
-              >
-                Try again
-              </button>
-            </p>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (

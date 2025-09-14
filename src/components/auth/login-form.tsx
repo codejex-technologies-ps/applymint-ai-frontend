@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -35,6 +35,9 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const { signIn } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  const message = searchParams.get('message')
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -53,6 +56,11 @@ export function LoginForm() {
       const { error } = await signIn(data.email, data.password)
       
       if (error) {
+        // Handle email not confirmed error
+        if (error === 'email_not_confirmed') {
+          router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
+          return
+        }
         setError(error)
         return
       }
@@ -84,6 +92,13 @@ export function LoginForm() {
             Sign in to continue your AI-powered job search journey
           </p>
         </div>
+
+        {/* Success Alert for email verification */}
+        {message === 'email_verified' && (
+          <div className="bg-chart-2/10 text-chart-2 border border-chart-2/20 p-4 rounded-lg">
+            <p className="text-sm">Email verified successfully! You can now sign in.</p>
+          </div>
+        )}
 
         {/* Error Alert */}
         {error && (

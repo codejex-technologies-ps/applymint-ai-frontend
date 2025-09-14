@@ -17,6 +17,8 @@ type AuthContextType = {
   resetPassword: (email: string) => Promise<{ error?: string }>
   updateProfile: (updates: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>) => Promise<{ error?: string }>
   refreshProfile: () => Promise<void>
+  verifySignUp: (email: string, token: string) => Promise<{ error?: string }>
+  resendVerification: (email: string) => Promise<{ error?: string }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -117,6 +119,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       
       if (error) {
+        // Check if it's an email not confirmed error
+        if (error.message.includes('email not confirmed') || error.message.includes('Email not confirmed')) {
+          return { error: 'email_not_confirmed' }
+        }
         return { error: error.message }
       }
       
@@ -194,6 +200,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const verifySignUp = async (email: string, token: string) => {
+    if (!supabase) {
+      return { error: 'Authentication service is not configured' }
+    }
+    
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'signup'
+      })
+      
+      if (error) {
+        return { error: error.message }
+      }
+      
+      return {}
+    } catch {
+      return { error: 'An unexpected error occurred' }
+    }
+  }
+
+  const resendVerification = async (email: string) => {
+    if (!supabase) {
+      return { error: 'Authentication service is not configured' }
+    }
+    
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email
+      })
+      
+      if (error) {
+        return { error: error.message }
+      }
+      
+      return {}
+    } catch {
+      return { error: 'An unexpected error occurred' }
+    }
+  }
+
   const value = {
     user,
     profile,
@@ -205,6 +254,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resetPassword,
     updateProfile,
     refreshProfile,
+    verifySignUp,
+    resendVerification,
   }
 
   return (
