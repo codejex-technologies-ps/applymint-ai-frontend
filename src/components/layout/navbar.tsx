@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Menu, X, Leaf, User, Settings, LogOut, LayoutDashboard } from "lucide-react";
 import { ModeToggle } from "../ui/mode-toggle";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -186,13 +186,16 @@ export const Navbar = () => {
                     <>
                       <div className="flex items-center space-x-3 px-2 py-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
                           <AvatarFallback className="bg-gradient-to-r from-chart-2 to-chart-1 text-white">
-                            {getInitials(user.email)}
+                            {getInitials(user.firstName, user.lastName, user.email)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col space-y-1 leading-none">
-                          <p className="font-medium text-sm">{user.user_metadata?.first_name} {user.user_metadata?.last_name}</p>
+                          {(user.firstName || user.lastName) && (
+                            <p className="font-medium text-sm">
+                              {user.firstName} {user.lastName}
+                            </p>
+                          )}
                           <p className="text-xs text-muted-foreground truncate">
                             {user.email}
                           </p>
