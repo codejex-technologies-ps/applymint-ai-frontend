@@ -13,6 +13,7 @@ import {
   Zap,
   Users,
   TrendingUp,
+  Mic,
 } from "lucide-react";
 
 export const FeaturesSection = () => {
@@ -77,6 +78,21 @@ export const FeaturesSection = () => {
       badge: "Interview Ready",
       cta: "Start Prepping",
     },
+    {
+      icon: Mic,
+      title: "AI Interview Simulator",
+      description:
+        "Experience realistic mock interviews with our AI interviewer that adapts to your responses and provides comprehensive feedback.",
+      benefits: [
+        "Interactive AI interviewer with follow-up questions",
+        "Real-time speech analysis and clarity scoring",
+        "Confidence and accuracy evaluation",
+        "Detailed performance summary with improvement tips",
+      ],
+      gradient: "from-chart-5 to-chart-1",
+      badge: "Live AI",
+      cta: "Start Interview",
+    },
   ];
 
   return (
@@ -103,7 +119,7 @@ export const FeaturesSection = () => {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <Card
               key={index}

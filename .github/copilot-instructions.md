@@ -1,215 +1,389 @@
-# ApplyMint AI Frontend - Code Style Guide
+# ApplyMint AI Frontend - AI Coding Agent Instructions
 
 ## Table of Contents
 
 1. [Project Overview](#project-overview)
 2. [Technology Stack](#technology-stack)
-3. [Folder Structure](#folder-structure)
-4. [Naming Conventions](#naming-conventions)
-5. [Component Guidelines](#component-guidelines)
-6. [Styling Guidelines](#styling-guidelines)
-7. [TypeScript Guidelines](#typescript-guidelines)
-8. [State Management](#state-management)
-9. [API Integration](#api-integration)
-10. [Testing Guidelines](#testing-guidelines)
-11. [Performance Guidelines](#performance-guidelines)
-12. [Security Guidelines](#security-guidelines)
+3. [AI Development Guidelines](#ai-development-guidelines)
+4. [Folder Structure](#folder-structure)
+5. [Current Implementation Status](#current-implementation-status)
+6. [Component Guidelines](#component-guidelines)
+7. [Styling Guidelines](#styling-guidelines)
+8. [TypeScript Guidelines](#typescript-guidelines)
+9. [State Management](#state-management)
+10. [API Integration](#api-integration)
+11. [Development Workflow](#development-workflow)
+12. [Performance Guidelines](#performance-guidelines)
+13. [Security Guidelines](#security-guidelines)
 
 ## Project Overview
 
-ApplyMint AI is a SaaS application designed to help job seekers streamline their job search process using AI technology. The frontend is built with Next.js 15, TypeScript, and Tailwind CSS, following modern React patterns and best practices.
+ApplyMint AI is a SaaS application designed to help job seekers streamline their job search process using AI technology. The frontend is built with Next.js 15, TypeScript, and Tailwind CSS v4, following modern React patterns and best practices. This is an active development project with a focus on AI-powered features.
 
 ## Technology Stack
 
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS + Shadcn/ui
-- **Package Manager**: PNPM
-- **State Management**: React Context API / Zustand (for complex state)
-- **UI Components**: Shadcn/ui
-- **Forms**: React Hook Form + Zod validation
-- **HTTP Client**: Fetch API / Axios
-- **Authentication**: NextAuth.js
+**Core Framework:**
+- **Framework**: Next.js 15.4.5 with App Router (using Turbopack for dev)
+- **Language**: TypeScript 5.x
+- **Styling**: Tailwind CSS v4.1.11 + Shadcn/ui components
+- **Package Manager**: PNPM 10.12.3 (locked)
+
+**UI & Styling:**
+- **Design System**: Shadcn/ui components with semantic color variables
+- **Icons**: Lucide React (v0.536.0)
+- **Theme**: Built-in dark/light mode with next-themes
+- **Animations**: tw-animate-css
+
+**Development Tools:**
+- **Forms**: React Hook Form 7.62.0 + @hookform/resolvers
+- **Validation**: Zod 4.0.17
+- **State Management**: Zustand 5.0.7 (configured)
+- **Utilities**: clsx, tailwind-merge, class-variance-authority
+
+## AI Development Guidelines
+
+### PNPM and Shadcn CLI Usage
+
+**Always prefer using official CLI commands instead of manual component creation:**
+
+```bash
+# Install shadcn components (PREFERRED)
+pnpm dlx shadcn@latest add button
+pnpm dlx shadcn@latest add card
+pnpm dlx shadcn@latest add input
+pnpm dlx shadcn@latest add form
+
+# Install multiple components at once
+pnpm dlx shadcn@latest add button card input form dialog
+
+# Check available components
+pnpm dlx shadcn@latest
+```
+
+**Development Scripts (from package.json):**
+```json
+{
+  "dev": "next dev --turbopack",    // Uses Turbopack for faster dev
+  "build": "next build",
+  "start": "next start", 
+  "lint": "next lint"
+}
+```
+
+### AI Agent Productivity Tips
+
+1. **Use File Search First**: Before creating new components, always search for existing patterns
+2. **Leverage Semantic Search**: Use semantic search to understand existing implementations
+3. **Follow Existing Patterns**: Copy patterns from implemented components rather than reinventing
+4. **Incremental Development**: Build on existing structure rather than recreating from scratch
 
 ## Folder Structure
 
+**Current Implementation Status (as of latest update):**
+
 ```
 src/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                   # Route groups for auth pages
-│   │   ├── login/
-│   │   ├── register/
-│   │   ├── forgot-password/
-│   │   └── reset-password/
-│   ├── (dashboard)/              # Protected dashboard routes
-│   │   ├── dashboard/
-│   │   ├── jobs/
-│   │   │   ├── search/
-│   │   │   ├── matched/
-│   │   │   ├── applied/
-│   │   │   └── saved/
-│   │   ├── profile/
-│   │   │   ├── personal/
-│   │   │   ├── resume/
-│   │   │   └── preferences/
-│   │   ├── analytics/
-│   │   └── settings/
-│   ├── (legal)/                  # Legal pages
-│   │   ├── privacy-policy/
-│   │   ├── terms-of-service/
-│   │   └── cookie-policy/
-│   ├── (public)/                 # Public pages
-│   │   ├── about/
-│   │   ├── features/
-│   │   ├── pricing/
-│   │   └── contact/
-│   ├── api/                      # API routes
-│   │   ├── auth/
-│   │   ├── jobs/
-│   │   ├── profile/
-│   │   └── ai/
-│   ├── globals.css
-│   ├── layout.tsx
-│   ├── page.tsx
-│   ├── loading.tsx
-│   ├── error.tsx
-│   └── not-found.tsx
+├── app/                          # Next.js App Router (IMPLEMENTED)
+│   ├── (auth)/                   # Route groups for auth pages (PLANNED)
+│   ├── (dashboard)/              # Protected dashboard routes (PLANNED)
+│   ├── (legal)/                  # Legal pages (IMPLEMENTED)
+│   │   └── terms-of-service/     # ✅ Complete
+│   ├── (public)/                 # Public pages (PARTIAL)
+│   │   ├── about/                # ✅ Complete  
+│   │   └── contact/              # ✅ Complete
+│   ├── favicon.ico
+│   ├── globals.css               # ✅ Tailwind v4 + semantic colors
+│   ├── layout.tsx                # ✅ Root layout with theme provider
+│   └── page.tsx                  # ✅ Homepage with all sections
 ├── components/                   # Reusable components
-│   ├── ui/                      # Shadcn/ui base components
-│   │   ├── button.tsx
-│   │   ├── input.tsx
-│   │   ├── card.tsx
-│   │   ├── dialog.tsx
-│   │   └── ...
-│   ├── auth/                    # Authentication components
-│   │   ├── login-form.tsx
-│   │   ├── register-form.tsx
-│   │   └── auth-provider.tsx
-│   ├── dashboard/               # Dashboard-specific components
-│   │   ├── sidebar.tsx
-│   │   ├── header.tsx
-│   │   └── stats-card.tsx
-│   ├── jobs/                    # Job-related components
-│   │   ├── job-card.tsx
-│   │   ├── job-filters.tsx
-│   │   ├── job-search.tsx
-│   │   └── job-details.tsx
-│   ├── profile/                 # Profile components
-│   │   ├── profile-form.tsx
-│   │   ├── resume-builder.tsx
-│   │   └── skills-section.tsx
-│   ├── layout/                  # Layout components
-│   │   ├── navbar.tsx
-│   │   ├── footer.tsx
-│   │   ├── sidebar.tsx
-│   │   └── breadcrumb.tsx
-│   └── common/                  # Common/shared components
-│       ├── loading-spinner.tsx
-│       ├── error-boundary.tsx
-│       ├── data-table.tsx
-│       └── pagination.tsx
-├── lib/                         # Utility libraries
-│   ├── utils.ts                # General utilities
-│   ├── auth.ts                 # Authentication utilities
-│   ├── api.ts                  # API client configuration
-│   ├── validations.ts          # Zod schemas
-│   ├── constants.ts            # Application constants
-│   └── types.ts                # Shared TypeScript types
-├── hooks/                       # Custom React hooks
-│   ├── use-auth.ts
-│   ├── use-jobs.ts
-│   ├── use-local-storage.ts
-│   └── use-debounce.ts
-├── store/                       # State management
-│   ├── auth-store.ts
-│   ├── jobs-store.ts
-│   └── user-store.ts
-├── styles/                      # Additional styles
-│   ├── globals.css
-│   └── components.css
-└── types/                       # TypeScript type definitions
-    ├── auth.ts
-    ├── jobs.ts
-    ├── user.ts
-    └── api.ts
+│   ├── ui/                      # ✅ Shadcn/ui base components
+│   │   ├── button.tsx           # ✅ Implemented
+│   │   ├── input.tsx            # ✅ Implemented  
+│   │   ├── card.tsx             # ✅ Implemented
+│   │   ├── badge.tsx            # ✅ Implemented
+│   │   ├── separator.tsx        # ✅ Implemented
+│   │   ├── avatar.tsx           # ✅ Implemented
+│   │   ├── dropdown-menu.tsx    # ✅ Implemented
+│   │   ├── form.tsx             # ✅ Implemented
+│   │   ├── label.tsx            # ✅ Implemented
+│   │   ├── textarea.tsx         # ✅ Implemented
+│   │   └── mode-toggle.tsx      # ✅ Dark/light theme toggle
+│   ├── auth/                    # Authentication components (EMPTY)
+│   ├── dashboard/               # Dashboard components (EMPTY)
+│   ├── jobs/                    # Job-related components (PARTIAL)
+│   │   └── job-card.tsx         # ✅ Implemented
+│   ├── layout/                  # Layout components (IMPLEMENTED)
+│   │   ├── navbar.tsx           # ✅ Complete with auth states
+│   │   └── footer.tsx           # ✅ Complete
+│   ├── homepage/                # Homepage sections (COMPLETE)
+│   │   ├── hero-section.tsx     # ✅ Hero with CTA
+│   │   ├── features-section.tsx # ✅ 5 features inc. AI Interview
+│   │   ├── how-it-works-section.tsx # ✅ Process flow
+│   │   ├── testimonials-section.tsx # ✅ User testimonials
+│   │   ├── pricing-section.tsx  # ✅ Pricing tiers
+│   │   ├── cta-section.tsx      # ✅ Bottom CTA
+│   │   └── index.tsx            # ✅ Exports
+│   ├── profile/                 # Profile components (EMPTY)
+│   └── provider/                # Context providers (IMPLEMENTED)
+│       └── theme-provider.tsx   # ✅ Theme context
+├── lib/                         # Utility libraries (MINIMAL)
+│   └── utils.ts                 # ✅ clsx + tailwind-merge utility
+├── types/                       # TypeScript definitions (EXTENSIVE)
+│   └── index.ts                 # ✅ 312 lines of comprehensive types
+└── styles/                      # Additional styles (PLANNED)
 ```
+
+## Current Implementation Status
+
+### ✅ Completed Features
+- **Homepage**: Complete with all 6 sections (hero, features, how-it-works, testimonials, pricing, CTA)
+- **Legal Pages**: Terms of Service page fully implemented
+- **Public Pages**: About page, Contact page with forms
+- **UI Components**: Full Shadcn/ui component library
+- **Theme System**: Dark/light mode with semantic color variables
+- **Type System**: Comprehensive TypeScript definitions
+- **Layout**: Responsive navigation and footer
+
+### 🚧 In Progress
+- **Authentication**: Route structure planned, components pending
+- **Dashboard**: Route structure planned, components pending  
+- **Job Features**: Basic job card implemented, full job system pending
+
+### 📋 Planned Features
+- Job search and filtering
+- User dashboard with analytics
+- Profile management and resume builder
+- AI interview simulator implementation
+- Application tracking system
+
+## Current Implementation Insights
+
+### Actual Dependencies in package.json
+
+**Production Dependencies:**
+```json
+{
+  "@hookform/resolvers": "^5.2.1",
+  "@radix-ui/react-avatar": "^1.1.10",
+  "@radix-ui/react-dropdown-menu": "^2.1.15", 
+  "@radix-ui/react-label": "^2.1.7",
+  "@radix-ui/react-separator": "^1.1.7",
+  "@radix-ui/react-slot": "^1.2.3",
+  "class-variance-authority": "^0.7.1",
+  "clsx": "^2.1.1",
+  "lucide-react": "^0.536.0",
+  "next": "15.4.5",
+  "next-themes": "^0.4.6",
+  "react": "19.1.0",
+  "react-dom": "19.1.0", 
+  "react-hook-form": "^7.62.0",
+  "tailwind-merge": "^3.3.1",
+  "zod": "^4.0.17",
+  "zustand": "^5.0.7"
+}
+```
+
+**Dev Dependencies:**
+```json
+{
+  "@eslint/eslintrc": "^3",
+  "@tailwindcss/postcss": "^4", 
+  "@types/node": "^20",
+  "@types/react": "^19",
+  "@types/react-dom": "^19",
+  "eslint": "^9",
+  "eslint-config-next": "15.4.5",
+  "tailwindcss": "^4",
+  "tw-animate-css": "^1.3.6",
+  "typescript": "^5"
+}
+```
+
+### Key Implementation Patterns Discovered
+
+**1. Semantic Color System (globals.css)**
+- Uses Tailwind v4 with CSS custom properties
+- OKLCH color space for better color consistency
+- Comprehensive dark/light mode support
+- Sidebar-specific color variables for dashboard layouts
+
+**2. Component Organization**
+- Homepage components are fully implemented and follow consistent patterns
+- All use semantic color variables correctly
+- Responsive design with mobile-first approach
+- Lucide React icons throughout
+
+**3. Type System (src/types/index.ts)**
+- 312+ lines of comprehensive TypeScript definitions
+- Covers User, Job, Application, Resume, and API types
+- Well-structured interfaces with proper relationships
+
+**4. Route Groups Architecture**
+- Uses Next.js 15 App Router route groups: `(auth)`, `(dashboard)`, `(legal)`, `(public)`
+- Enables organized routing without affecting URL structure
+- Legal and public sections partially implemented
 
 ## Naming Conventions
 
-### Files and Folders
+### Files and Folders (Current Practice)
 
 - Use **kebab-case** for file and folder names
-- Use **PascalCase** for React components
+- Use **PascalCase** for React components  
 - Use **camelCase** for utility functions and variables
 
 ```typescript
-// ✅ Good
-components / job - search / job - filter - panel.tsx;
-lib / api - client.ts;
-hooks / use - job - search.ts;
+// ✅ Current Implementation Pattern
+components/homepage/features-section.tsx
+components/ui/mode-toggle.tsx
+components/provider/theme-provider.tsx
+lib/utils.ts
+types/index.ts
 
-// ❌ Bad
-components / JobSearch / JobFilterPanel.tsx;
-lib / apiClient.ts;
-hooks / useJobSearch.ts;
+// ✅ Component Names (from actual codebase)
+export const FeaturesSection = () => { ... }
+export const ThemeProvider = () => { ... }
+export const ModeToggle = () => { ... }
 ```
 
-### Components
-
-- Use **PascalCase** for component names
-- Use descriptive names that indicate purpose
+### Variables and Functions (Current Practice)
 
 ```typescript
-// ✅ Good
-export const JobSearchForm = () => { ... }
-export const UserProfileCard = () => { ... }
+// ✅ From actual components
+const features = [
+  {
+    icon: Target,
+    title: "AI-Powered Resume Matching",
+    description: "...",
+    benefits: [...],
+    gradient: "from-chart-1 to-chart-2",
+    badge: "Most Popular",
+    cta: "Start Matching",
+  },
+  // ...
+];
 
-// ❌ Bad
-export const jsf = () => { ... }
-export const Card = () => { ... }
-```
-
-### Variables and Functions
-
-- Use **camelCase** for variables and functions
-- Use descriptive names
-
-```typescript
-// ✅ Good
-const jobSearchResults = await fetchJobs()
-const handleFormSubmit = () => { ... }
-
-// ❌ Bad
-const jsr = await fetchJobs()
-const submit = () => { ... }
+// ✅ Current utility pattern
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 ```
 
 ## Component Guidelines
 
-### Component Structure
+### Component Structure (Based on Current Implementation)
 
-All components should follow this structure:
+All components should follow the established pattern from existing codebase:
 
 ```typescript
-"use client"; // Only if needed (client components)
-
 import React from "react";
-import { cn } from "@/lib/utils";
-
-// External library imports
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Target,
+  FileText,
+  Bell,
+  MessageSquare,
+  ArrowRight,
+  Sparkles,
+  Mic,
+} from "lucide-react";
 
-// Internal imports
-import { JobCard } from "@/components/jobs/job-card";
+export const FeaturesSection = () => {
+  const features = [
+    {
+      icon: Target,
+      title: "AI-Powered Resume Matching",
+      description: "Our intelligent algorithm analyzes your resume...",
+      benefits: [
+        "Apply only to jobs you're qualified for",
+        "Discover hidden opportunities based on your skills",
+        "Get match percentage for each job",
+        "Real-time job compatibility scoring",
+      ],
+      gradient: "from-chart-1 to-chart-2",
+      badge: "Most Popular",
+      cta: "Start Matching",
+    },
+    // ... more features
+  ];
 
-// Types
-interface JobListProps {
-  jobs: Job[];
-  isLoading?: boolean;
-  className?: string;
-}
+  return (
+    <section id="features" className="py-20 lg:py-32 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Component content */}
+      </div>
+    </section>
+  );
+};
+```
 
-// Component
+### Current Component Best Practices (From Codebase Analysis)
+
+1. **Always use semantic color variables** (never hardcoded colors)
+2. **Export components as named exports** 
+3. **Use Lucide React icons consistently**
+4. **Follow responsive design patterns**: `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`
+5. **Use semantic HTML5 elements**: `<section>`, `<main>`, `<header>`, `<footer>`
+
+### Actual Shadcn/ui Components Available
+
+**From current src/components/ui/ directory:**
+```typescript
+// ✅ Currently Implemented
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { ModeToggle } from "@/components/ui/mode-toggle";
+```
+
+### Component Installation Pattern
+
+**Always use shadcn CLI for new components:**
+```bash
+# ✅ Preferred method (based on project instructions)
+pnpm dlx shadcn@latest add dialog
+pnpm dlx shadcn@latest add toast
+pnpm dlx shadcn@latest add sheet
+pnpm dlx shadcn@latest add tabs
+
+# ✅ Install multiple at once
+pnpm dlx shadcn@latest add dialog toast sheet tabs select
+```
+
+### Responsive Design Patterns (From Current Implementation)
+
+```typescript
+// ✅ Current responsive patterns from homepage components
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+  {/* 5 features grid layout */}
+</div>
+
+<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  {/* Standard container pattern */}
+</div>
+
+<div className="space-y-6 lg:space-y-8">
+  {/* Responsive spacing */}
+</div>
+
+// ✅ Responsive typography (from actual components)
+<h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center text-primary mb-4">
+<p className="text-lg text-muted-foreground max-w-3xl mx-auto text-center">
+```
+
+### Error Handling Patterns
+
+```typescript
+// ✅ Early returns pattern (recommended)
 export const JobList: React.FC<JobListProps> = ({
   jobs,
   isLoading = false,
@@ -233,59 +407,6 @@ export const JobList: React.FC<JobListProps> = ({
     </div>
   );
 };
-
-// Sub-components (if small and related)
-const JobListSkeleton = () => {
-  return (
-    <div className="space-y-4">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="animate-pulse bg-gray-200 h-32 rounded-lg" />
-      ))}
-    </div>
-  );
-};
-```
-
-### Component Best Practices
-
-1. **Always use TypeScript interfaces for props**
-2. **Export components as named exports**
-3. **Use forwardRef for components that need ref forwarding**
-4. **Implement proper error boundaries**
-5. **Use React.memo for expensive components**
-
-```typescript
-// ✅ Good - With proper TypeScript and memo
-interface ExpensiveComponentProps {
-  data: ComplexData[];
-  onUpdate: (id: string) => void;
-}
-
-export const ExpensiveComponent = React.memo<ExpensiveComponentProps>(
-  ({ data, onUpdate }) => {
-    // Component logic
-  }
-);
-
-// ✅ Good - With forwardRef
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-}
-
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, className, ...props }, ref) => {
-    return (
-      <div>
-        {label && <label>{label}</label>}
-        <input
-          ref={ref}
-          className={cn("input-base-styles", className)}
-          {...props}
-        />
-      </div>
-    );
-  }
-);
 ```
 
 ## Styling Guidelines
@@ -1124,44 +1245,110 @@ export const authOptions: NextAuthOptions = {
 };
 ```
 
-## Code Quality Tools
+## Development Workflow
 
-### ESLint Configuration
+### AI Agent Workflow for ApplyMint AI
 
-```json
-// eslint.config.mjs
-export default [
-  {
-    extends: [
-      'next/core-web-vitals',
-      '@typescript-eslint/recommended',
-    ],
-    rules: {
-      '@typescript-eslint/no-unused-vars': 'error',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
-    },
-  },
-]
+**1. Discovery Phase (Before Any Code Changes)**
+```bash
+# Always start by understanding current state
+file_search "src/components/**/*.tsx"
+semantic_search "component patterns button card"
+list_dir "src/components/ui"
+read_file "package.json" 1 50
 ```
 
-### Prettier Configuration
+**2. Component Creation Workflow**
+```bash
+# Step 1: Check if component exists
+semantic_search "component_name existing implementation"
 
-```json
-// .prettierrc
+# Step 2: Install shadcn components if needed (PREFERRED)
+pnpm dlx shadcn@latest add button card input
+
+# Step 3: Follow existing patterns from components/homepage/*
+read_file "src/components/homepage/features-section.tsx" 1 100
+
+# Step 4: Use semantic color variables and responsive patterns
+```
+
+**3. Page Creation Workflow**
+```bash
+# Check existing pages for patterns
+file_search "src/app/(public|legal)/**/*.tsx"
+
+# Follow route group structure: (auth), (dashboard), (legal), (public)
+# Use semantic colors and responsive containers
+```
+
+**4. Development Commands (Current)**
+```bash
+# Development with Turbopack (faster)
+pnpm dev
+
+# Build and type checking
+pnpm build
+pnpm lint
+
+# Package manager commands
+pnpm add <package>
+pnpm dlx shadcn@latest add <component>
+```
+
+### Current Configuration Files
+
+**ESLint (eslint.config.mjs) - Current Implementation:**
+```javascript
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+];
+
+export default eslintConfig;
+```
+
+**TypeScript Config (tsconfig.json) - Current Implementation:**
+```jsonc
 {
-  "semi": false,
-  "singleQuote": true,
-  "tabWidth": 2,
-  "trailingComma": "es5",
-  "printWidth": 80,
-  "bracketSpacing": true,
-  "arrowParens": "avoid"
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }
 ```
 
-## Git Workflow
+### Git Workflow
 
 ### Commit Message Convention
 
@@ -1188,6 +1375,47 @@ refactor/component-structure
 
 ## Conclusion
 
-This style guide should be treated as a living document that evolves with the project. All team members should follow these guidelines to ensure code consistency, maintainability, and scalability.
+This comprehensive style guide is specifically designed for AI coding agents working on the ApplyMint AI frontend. It provides concrete, actionable patterns based on the actual current codebase state.
 
-Regular code reviews should be conducted to ensure adherence to these guidelines, and any proposed changes to the style guide should be discussed and agreed upon by the team.
+### Key Principles for AI Agents:
+
+1. **Discovery First**: Always explore current codebase before making changes
+2. **Pattern Following**: Copy established patterns from existing components
+3. **Tool Usage**: Prefer shadcn CLI over manual component creation
+4. **Semantic Colors**: Always use the semantic color system, never hardcoded colors
+5. **Responsive Design**: Follow the established responsive patterns
+6. **Incremental Development**: Build on existing architecture
+
+### Quick Reference for AI Agents:
+
+**Component Creation:**
+```bash
+pnpm dlx shadcn@latest add <component-name>
+```
+
+**Current Dependencies:**
+- Next.js 15.4.5 with Turbopack
+- React 19.1.0
+- TypeScript 5.x
+- Tailwind CSS v4.1.11
+- Shadcn/ui with semantic colors
+
+**Color System:**
+```css
+/* Always use semantic variables */
+bg-primary text-primary-foreground
+bg-card text-card-foreground
+bg-muted text-muted-foreground
+```
+
+**Container Pattern:**
+```typescript
+<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+```
+
+**File Structure:**
+- `src/app/(route-group)/page-name/page.tsx`
+- `src/components/category/component-name.tsx`
+- `src/types/index.ts` for TypeScript definitions
+
+This guide is a living document that should be referenced before any code changes to ensure consistency with the established codebase patterns and architecture decisions.
