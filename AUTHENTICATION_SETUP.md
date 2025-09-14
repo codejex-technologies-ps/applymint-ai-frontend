@@ -92,21 +92,38 @@ To enable social authentication, update the disabled social login buttons in the
 
 ## Supabase Database Setup
 
-### User Profiles Table (Optional)
+### User Profiles Table (Required)
 
-You may want to create a profiles table to store additional user information:
+Create a profiles table to store user information that syncs with the auth system:
 
 ```sql
-create table profiles (
-  id uuid references auth.users on delete cascade not null primary key,
-  updated_at timestamp with time zone,
-  username text unique,
-  full_name text,
-  avatar_url text,
-  website text,
+-- Create the profiles table
+create table public.profiles (
+  id uuid not null,
+  email text not null,
+  first_name text null,
+  last_name text null,
+  phone_number text null,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  constraint profiles_pkey primary key (id),
+  constraint profiles_email_key unique (email),
+  constraint profiles_id_fkey foreign key (id) references auth.users (id) on delete CASCADE
+) TABLESPACE pg_default;
 
-  constraint username_length check (char_length(username) >= 3)
-);
+-- Create the update_updated_at_column function if it doesn't exist
+create or replace function update_updated_at_column()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+-- Create trigger to automatically update updated_at column
+create trigger update_profiles_updated_at BEFORE
+update on profiles for EACH row
+execute FUNCTION update_updated_at_column ();
 
 -- Set up Row Level Security (RLS)
 alter table profiles enable row level security;
@@ -121,11 +138,16 @@ create policy "Users can update own profile." on profiles
   for update using (auth.uid() = id);
 
 -- Set up automatic profile creation
-create function public.handle_new_user()
+create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, full_name, avatar_url)
-  values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+  insert into public.profiles (id, email, first_name, last_name)
+  values (
+    new.id, 
+    new.email,
+    new.raw_user_meta_data->>'first_name',
+    new.raw_user_meta_data->>'last_name'
+  );
   return new;
 end;
 $$ language plpgsql security definer;
