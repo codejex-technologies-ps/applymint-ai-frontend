@@ -77,6 +77,7 @@ pnpm dlx shadcn@latest
 2. **Leverage Semantic Search**: Use semantic search to understand existing implementations
 3. **Follow Existing Patterns**: Copy patterns from implemented components rather than reinventing
 4. **Incremental Development**: Build on existing structure rather than recreating from scratch
+5. **ALWAYS TEST BUILDS**: Before marking any task complete, **ALWAYS** run `pnpm run build` to ensure the application builds successfully. This catches Next.js-specific issues like missing Suspense boundaries, type errors, and other build-time problems.
 
 ## Folder Structure
 
@@ -1548,13 +1549,36 @@ file_search "src/app/(public|legal)/**/*.tsx"
 # Development with Turbopack (faster)
 pnpm dev
 
-# Build and type checking
-pnpm build
+# Build and type checking - ALWAYS RUN BEFORE COMPLETING TASKS
+pnpm run build
 pnpm lint
 
 # Package manager commands
 pnpm add <package>
 pnpm dlx shadcn@latest add <component>
+```
+
+**5. Next.js 15 Suspense Requirements**
+```typescript
+// ❌ Wrong: useSearchParams() without Suspense (causes build errors)
+export default function MyPage() {
+  return <ComponentWithUseSearchParams />
+}
+
+// ✅ Correct: Wrap in Suspense boundary
+import { Suspense } from 'react'
+
+function LoadingFallback() {
+  return <div className="animate-pulse">Loading...</div>
+}
+
+export default function MyPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ComponentWithUseSearchParams />
+    </Suspense>
+  )
+}
 ```
 
 ### Current Configuration Files
