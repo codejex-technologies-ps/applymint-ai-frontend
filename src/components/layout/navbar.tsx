@@ -34,9 +34,17 @@ export const Navbar = () => {
     router.push('/');
   };
 
-  const getInitials = (email: string | undefined) => {
-    if (!email) return 'U';
-    return email.charAt(0).toUpperCase();
+  const getInitials = (firstName?: string, lastName?: string, email?: string) => {
+    if (firstName && lastName) {
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    }
+    if (firstName) {
+      return firstName.charAt(0).toUpperCase();
+    }
+    if (email) {
+      return email.charAt(0).toUpperCase();
+    }
+    return 'U';
   };
 
   return (
@@ -74,9 +82,8 @@ export const Navbar = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
                         <AvatarFallback className="bg-gradient-to-r from-chart-2 to-chart-1 text-white">
-                          {getInitials(user.email)}
+                          {getInitials(user.firstName, user.lastName, user.email)}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -84,7 +91,11 @@ export const Navbar = () => {
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <div className="flex items-center justify-start gap-2 p-2">
                       <div className="flex flex-col space-y-1 leading-none">
-                        <p className="font-medium text-sm">{user.user_metadata?.first_name} {user.user_metadata?.last_name}</p>
+                        {(user.firstName || user.lastName) && (
+                          <p className="font-medium text-sm">
+                            {user.firstName} {user.lastName}
+                          </p>
+                        )}
                         <p className="w-[200px] truncate text-xs text-muted-foreground">
                           {user.email}
                         </p>
