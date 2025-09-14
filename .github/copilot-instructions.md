@@ -27,6 +27,7 @@ ApplyMint AI is a SaaS application designed to help job seekers streamline their
 - **Language**: TypeScript 5.x
 - **Styling**: Tailwind CSS v4.1.11 + Shadcn/ui components
 - **Package Manager**: PNPM 10.12.3 (locked)
+- **Authentication**: Supabase Auth (@supabase/supabase-js, @supabase/ssr)
 
 **UI & Styling:**
 - **Design System**: Shadcn/ui components with semantic color variables
@@ -37,7 +38,7 @@ ApplyMint AI is a SaaS application designed to help job seekers streamline their
 **Development Tools:**
 - **Forms**: React Hook Form 7.62.0 + @hookform/resolvers
 - **Validation**: Zod 4.0.17
-- **State Management**: Zustand 5.0.7 (configured)
+- **State Management**: Zustand 5.0.7 (configured) + React Context for Auth
 - **Utilities**: clsx, tailwind-merge, class-variance-authority
 
 ## AI Development Guidelines
@@ -108,7 +109,10 @@ src/
 │   │   ├── label.tsx            # ✅ Implemented
 │   │   ├── textarea.tsx         # ✅ Implemented
 │   │   └── mode-toggle.tsx      # ✅ Dark/light theme toggle
-│   ├── auth/                    # Authentication components (EMPTY)
+│   ├── auth/                    # Authentication components (IMPLEMENTED)
+│   │   ├── auth-provider.tsx   # ✅ Supabase auth context
+│   │   ├── login-form.tsx      # ✅ Complete login form
+│   │   └── register-form.tsx   # ✅ Complete register form
 │   ├── dashboard/               # Dashboard components (EMPTY)
 │   ├── jobs/                    # Job-related components (PARTIAL)
 │   │   └── job-card.tsx         # ✅ Implemented
@@ -127,7 +131,11 @@ src/
 │   └── provider/                # Context providers (IMPLEMENTED)
 │       └── theme-provider.tsx   # ✅ Theme context
 ├── lib/                         # Utility libraries (MINIMAL)
-│   └── utils.ts                 # ✅ clsx + tailwind-merge utility
+│   ├── utils.ts                 # ✅ clsx + tailwind-merge utility
+│   └── supabase/                # ✅ Supabase configuration
+│       ├── client.ts            # ✅ Browser client
+│       ├── server.ts            # ✅ Server client
+│       └── middleware.ts        # ✅ Auth middleware
 ├── types/                       # TypeScript definitions (EXTENSIVE)
 │   └── index.ts                 # ✅ 312 lines of comprehensive types
 └── styles/                      # Additional styles (PLANNED)
@@ -143,9 +151,9 @@ src/
 - **Theme System**: Dark/light mode with semantic color variables
 - **Type System**: Comprehensive TypeScript definitions
 - **Layout**: Responsive navigation and footer
+- **Authentication**: Complete Supabase integration with login/register forms
 
 ### 🚧 In Progress
-- **Authentication**: Route structure planned, components pending
 - **Dashboard**: Route structure planned, components pending  
 - **Job Features**: Basic job card implemented, full job system pending
 
@@ -931,7 +939,182 @@ export type PaginatedResponse<T> = {
 export type LoadingState = "idle" | "loading" | "success" | "error";
 ```
 
-## State Management
+## Authentication with Supabase
+
+### Setup and Configuration
+
+**Environment Variables Required:**
+```bash
+# .env.local
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+**Client Configuration:**
+```typescript
+// lib/supabase/client.ts - Browser client
+import { createBrowserClient } from '@supabase/ssr'
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
+// lib/supabase/server.ts - Server client
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+```
+
+### Authentication Context Provider
+
+**Current Implementation Pattern:**
+```typescript
+// components/auth/auth-provider.tsx
+'use client'
+
+import { createContext, useContext, useEffect, useState } from 'react'
+import { User } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/client'
+
+type AuthContextType = {
+  user: User | null
+  loading: boolean
+  signIn: (email: string, password: string) => Promise<{ error?: string }>
+  signUp: (email: string, password: string, metadata?: object) => Promise<{ error?: string }>
+  signOut: () => Promise<void>
+  resetPassword: (email: string) => Promise<{ error?: string }>
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}
+```
+
+### Form Components with Supabase
+
+**Login Form Pattern:**
+```typescript
+// components/auth/login-form.tsx
+'use client'
+
+import { useAuth } from './auth-provider'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+export function LoginForm() {
+  const { signIn } = useAuth()
+  const form = useForm({
+    resolver: zodResolver(loginSchema),
+  })
+
+  const onSubmit = async (data) => {
+    const { error } = await signIn(data.email, data.password)
+    if (error) {
+      setError(error)
+      return
+    }
+    router.push('/dashboard')
+  }
+}
+```
+
+### Authentication Guards and Middleware
+
+**Protected Routes:**
+```typescript
+// middleware.ts
+import { createServerClient } from '@supabase/ssr'
+
+export async function middleware(request: NextRequest) {
+  const supabase = createServerClient(/* config */)
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Protect dashboard routes
+  if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // Redirect authenticated users from auth pages
+  if (user && (request.nextUrl.pathname.startsWith('/login'))) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+}
+```
+
+### Navigation Integration
+
+**Conditional Navigation:**
+```typescript
+// components/layout/navbar.tsx
+import { useAuth } from '@/components/auth/auth-provider'
+
+export const Navbar = () => {
+  const { user, signOut, loading } = useAuth()
+
+  return (
+    <nav>
+      {!loading && (
+        user ? (
+          // Authenticated state - show user menu
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Avatar>
+                <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={signOut}>
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          // Unauthenticated state - show login/register buttons
+          <>
+            <Button asChild><Link href="/login">Sign In</Link></Button>
+            <Button asChild><Link href="/register">Get Started</Link></Button>
+          </>
+        )
+      )}
+    </nav>
+  )
+}
+```
+
+### Authentication Best Practices
+
+1. **Always use the auth context**: Never access Supabase client directly in components
+2. **Handle loading states**: Show loading indicators while auth state is being determined
+3. **Error handling**: Always handle and display authentication errors appropriately
+4. **Type safety**: Use proper TypeScript types from Supabase
+5. **Security**: Never expose sensitive data in client-side code
+
+### Current Auth Routes
+
+**Implemented:**
+- `/login` - Login form with email/password
+- `/register` - Registration form with validation
+- Authentication state management throughout the app
+- Protected dashboard routes
+- Logout functionality
+
+**Planned:**
+- `/auth/forgot-password` - Password reset flow
+- `/auth/reset-password` - Password reset confirmation
+- Social authentication (Google, GitHub)
+- Email verification flow
+
 
 ### Context API for Global State
 
