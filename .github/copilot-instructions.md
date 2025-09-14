@@ -985,6 +985,8 @@ type AuthContextType = {
   signUp: (email: string, password: string, metadata?: object) => Promise<{ error?: string }>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<{ error?: string }>
+  verifySignUp: (email: string, token: string) => Promise<{ error?: string }>
+  resendVerification: (email: string) => Promise<{ error?: string }>
 }
 
 export function useAuth() {
@@ -994,6 +996,65 @@ export function useAuth() {
   }
   return context
 }
+```
+
+### Email Verification with OTP
+
+**Complete Email Verification Flow:**
+```typescript
+// components/auth/verify-email-form.tsx
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
+
+export function VerifyEmailForm() {
+  const [otp, setOtp] = useState('')
+  const { verifySignUp, resendVerification } = useAuth()
+  
+  // Auto-submit when 6 digits entered
+  useEffect(() => {
+    if (otp.length === 6 && !isLoading) {
+      handleVerifyOTP()
+    }
+  }, [otp, email, verifySignUp, router, isLoading])
+
+  return (
+    <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+      <InputOTPGroup>
+        <InputOTPSlot index={0} />
+        <InputOTPSlot index={1} />
+        <InputOTPSlot index={2} />
+        <InputOTPSlot index={3} />
+        <InputOTPSlot index={4} />
+        <InputOTPSlot index={5} />
+      </InputOTPGroup>
+    </InputOTP>
+  )
+}
+```
+
+### Authentication Flow Integration
+
+**Register → Verify → Login Flow:**
+```typescript
+// 1. Register form redirects to verification
+const onSubmit = async (data: RegisterForm) => {
+  const { error } = await signUp(data.email, data.password, metadata)
+  if (!error) {
+    router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
+  }
+}
+
+// 2. Login form detects unverified email
+const onSubmit = async (data: LoginForm) => {
+  const { error } = await signIn(data.email, data.password)
+  if (error === 'email_not_confirmed') {
+    router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
+  }
+}
+
+// 3. Verification success redirects to login with success message
+setTimeout(() => {
+  router.push('/login?message=email_verified')
+}, 2000)
 ```
 
 ### Form Components with Supabase
@@ -1014,12 +1075,22 @@ const loginSchema = z.object({
 
 export function LoginForm() {
   const { signIn } = useAuth()
-  const form = useForm({
-    resolver: zodResolver(loginSchema),
-  })
+  const searchParams = useSearchParams()
+  const message = searchParams.get('message')
+
+  // Show success message for email verification
+  {message === 'email_verified' && (
+    <div className="bg-chart-2/10 text-chart-2 border border-chart-2/20 p-4 rounded-lg">
+      <p className="text-sm">Email verified successfully! You can now sign in.</p>
+    </div>
+  )}
 
   const onSubmit = async (data) => {
     const { error } = await signIn(data.email, data.password)
+    if (error === 'email_not_confirmed') {
+      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
+      return
+    }
     if (error) {
       setError(error)
       return
@@ -1097,23 +1168,31 @@ export const Navbar = () => {
 1. **Always use the auth context**: Never access Supabase client directly in components
 2. **Handle loading states**: Show loading indicators while auth state is being determined
 3. **Error handling**: Always handle and display authentication errors appropriately
-4. **Type safety**: Use proper TypeScript types from Supabase
-5. **Security**: Never expose sensitive data in client-side code
+4. **Email verification**: Implement complete OTP flow with resend functionality
+5. **Type safety**: Use proper TypeScript types from Supabase
+6. **Security**: Never expose sensitive data in client-side code
+7. **User experience**: Provide clear feedback and seamless flow transitions
 
 ### Current Auth Routes
 
 **Implemented:**
-- `/login` - Login form with email/password
-- `/register` - Registration form with validation
+- `/login` - Login form with email/password and unverified email detection
+- `/register` - Registration form with validation and redirect to verification
+- `/verify-email` - Email verification with 6-digit OTP input component
 - Authentication state management throughout the app
 - Protected dashboard routes
 - Logout functionality
+- Success/error message handling
+
+**Supabase OTP Methods:**
+- `verifySignUp(email, token)` - Verify email with 6-digit code
+- `resendVerification(email)` - Resend verification code
+- Auto-detection of unverified email during login
 
 **Planned:**
 - `/auth/forgot-password` - Password reset flow
 - `/auth/reset-password` - Password reset confirmation
 - Social authentication (Google, GitHub)
-- Email verification flow
 
 
 ### Context API for Global State
