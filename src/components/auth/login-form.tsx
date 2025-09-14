@@ -100,6 +100,13 @@ export function LoginForm() {
           </div>
         )}
 
+        {/* Success Alert for password reset */}
+        {message === 'password_reset' && (
+          <div className="bg-chart-2/10 text-chart-2 border border-chart-2/20 p-4 rounded-lg">
+            <p className="text-sm">Password updated successfully! You can now sign in with your new password.</p>
+          </div>
+        )}
+
         {/* Error Alert */}
         {error && (
           <div className="bg-destructive/10 text-destructive border border-destructive/20 p-4 rounded-lg">
@@ -189,7 +196,7 @@ export function LoginForm() {
               />
 
               <Link
-                href="/auth/forgot-password"
+                href="/forgot-password"
                 className="text-sm text-primary hover:text-primary/80 font-medium"
               >
                 Forgot password?
