@@ -10,6 +10,7 @@ import { Eye, EyeOff, Loader2, Leaf } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -159,12 +160,9 @@ export function LoginForm() {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                     <FormControl>
-                      <input
-                        type="checkbox"
-                        {...field}
-                        value={undefined}
+                      <Checkbox
                         checked={field.value}
-                        className="mt-1 h-4 w-4 text-primary border-input rounded focus:ring-ring"
+                        onCheckedChange={field.onChange}
                         disabled={isLoading}
                       />
                     </FormControl>
