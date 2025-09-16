@@ -1,13 +1,13 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
-import { LoginForm } from '@/components/auth/login-form'
+import { ForgotPasswordForm } from '@/components/auth/forgot-password-form'
 
 export const metadata: Metadata = {
-  title: 'Sign In | ApplyMint AI',
-  description: 'Sign in to your ApplyMint AI account to continue your job search journey.',
+  title: 'Forgot Password | ApplyMint AI',
+  description: 'Reset your ApplyMint AI account password.',
 }
 
-function LoginFormFallback() {
+function ForgotPasswordFormFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 text-center">
@@ -21,10 +21,10 @@ function LoginFormFallback() {
   )
 }
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   return (
-    <Suspense fallback={<LoginFormFallback />}>
-      <LoginForm />
+    <Suspense fallback={<ForgotPasswordFormFallback />}>
+      <ForgotPasswordForm />
     </Suspense>
   )
 }

@@ -1,13 +1,16 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
-import { LoginForm } from '@/components/auth/login-form'
+import { ResetPasswordForm } from '@/components/auth/reset-password-form'
 
 export const metadata: Metadata = {
-  title: 'Sign In | ApplyMint AI',
-  description: 'Sign in to your ApplyMint AI account to continue your job search journey.',
+  title: 'Reset Password | ApplyMint AI',
+  description: 'Reset your ApplyMint AI account password.',
 }
 
-function LoginFormFallback() {
+// Force dynamic rendering to avoid build issues with Supabase
+export const dynamic = 'force-dynamic'
+
+function ResetPasswordFormFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 text-center">
@@ -21,10 +24,10 @@ function LoginFormFallback() {
   )
 }
 
-export default function LoginPage() {
+export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<LoginFormFallback />}>
-      <LoginForm />
+    <Suspense fallback={<ResetPasswordFormFallback />}>
+      <ResetPasswordForm />
     </Suspense>
   )
 }
