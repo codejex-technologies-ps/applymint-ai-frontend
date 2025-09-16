@@ -1,6 +1,6 @@
 {
   "name": "applymint-ai-frontend",
-  "description": "A modern, AI-powered job search platform built with Next.js 15, TypeScript, and Tailwind CSS. Transform your job search with AI-powered precision."
+  "description": "A modern, AI-powered job search platform built with Next.js 15, TypeScript, and Tailwind CSS. Transform your job search with AI-powered precision.",
   "version": "0.1.0",
   "private": true,
   "scripts": {
