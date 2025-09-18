@@ -7,6 +7,8 @@ export { JobRecommendations } from './job-recommendations'
 export { DashboardSidebar } from './dashboard-sidebar'
 export { DashboardHeader } from './dashboard-header'
 export { DashboardLayout } from './dashboard-layout'
+export { AnalyticsWidget } from './analytics-widget'
+export { NotificationCenter } from './notification-center'
 
 // Re-export types
 export type { StatsCardProps } from './stats-card'
@@ -17,3 +19,5 @@ export type { JobRecommendationsProps, JobRecommendation } from './job-recommend
 export type { DashboardSidebarProps } from './dashboard-sidebar'
 export type { DashboardHeaderProps } from './dashboard-header'
 export type { DashboardLayoutProps } from './dashboard-layout'
+export type { AnalyticsWidgetProps } from './analytics-widget'
+export type { NotificationCenterProps } from './notification-center'
