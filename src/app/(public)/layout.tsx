@@ -1,13 +1,16 @@
-import { Homepage } from "@/components/homepage";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 
-export default function Home() {
+export default function PublicLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1">
-        <Homepage />
+        {children}
       </main>
       <Footer />
     </div>

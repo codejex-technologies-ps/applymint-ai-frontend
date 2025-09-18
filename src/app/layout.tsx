@@ -4,8 +4,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/provider/theme-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
 
 // Temporarily using fallback fonts
 const geistSans = {
@@ -51,13 +49,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-            </div>
+            {children}
           </AuthProvider>
         </ThemeProvider>
       </body>
