@@ -43,6 +43,23 @@ ApplyMint AI is a SaaS application designed to help job seekers streamline their
 
 ## AI Development Guidelines
 
+### Package Manager: PNPM ONLY
+
+**CRITICAL: This project uses PNPM exclusively. Never use npm or yarn.**
+
+```bash
+# ALWAYS install pnpm first
+npm install -g pnpm
+
+# Use pnpm for all package management
+pnpm install
+pnpm add <package>
+pnpm remove <package>
+pnpm run <script>
+```
+
+**NEVER use npm commands after initial pnpm installation. Always use pnpm.**
+
 ### PNPM and Shadcn CLI Usage
 
 **Always prefer using official CLI commands instead of manual component creation:**
