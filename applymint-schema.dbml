@@ -1,0 +1,386 @@
+// ApplyMint AI Database Schema - DBML Format
+// This file defines the complete database schema in DBML format
+// Can be used with DBML tools to generate visual diagrams
+
+Project ApplyMint_AI {
+  database_type: 'PostgreSQL'
+  Note: 'AI-powered job search platform database schema'
+}
+
+// ===========================================
+// AUTHENTICATION TABLES
+// ===========================================
+
+Table auth.users {
+  id uuid [pk]
+  email text [unique, not null]
+  email_confirmed_at timestamp
+  last_sign_in_at timestamp
+  role text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Supabase authentication users table'
+}
+
+// ===========================================
+// CORE USER TABLES
+// ===========================================
+
+Table profiles {
+  id uuid [pk, ref: > auth.users.id]
+  email text [unique, not null]
+  first_name text
+  last_name text
+  phone_number text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Extended user profiles linked to Supabase auth'
+}
+
+Table user_preferences {
+  id uuid [pk]
+  user_id uuid [unique, ref: > profiles.id]
+  job_alerts boolean [default: true]
+  email_notifications boolean [default: true]
+  sms_notifications boolean [default: false]
+  preferred_job_types text[]
+  preferred_locations text[]
+  salary_min numeric
+  salary_max numeric
+  salary_currency text [default: 'USD']
+  remote_work boolean [default: false]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'User job search preferences and notification settings'
+}
+
+// ===========================================
+// JOB SEARCH TABLES
+// ===========================================
+
+Table companies {
+  id uuid [pk]
+  name text [not null]
+  description text
+  website text
+  logo_url text
+  industry text
+  size text [default: 'STARTUP']
+  location text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Company information for job listings'
+}
+
+Table jobs {
+  id uuid [pk]
+  title text [not null]
+  company_id uuid [ref: > companies.id]
+  location text [not null]
+  is_remote boolean [default: false]
+  job_type text [default: 'FULL_TIME']
+  experience_level text [default: 'ENTRY']
+  description text [not null]
+  requirements text[]
+  responsibilities text[]
+  benefits text[]
+  salary_min numeric
+  salary_max numeric
+  salary_currency text [default: 'USD']
+  skills text[]
+  posted_at timestamp [default: `now()`]
+  application_deadline timestamp
+  is_active boolean [default: true]
+  external_job_id text
+  external_source text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Core job listings with comprehensive details'
+}
+
+Table job_applications {
+  id uuid [pk]
+  job_id uuid [ref: > jobs.id]
+  user_id uuid [ref: > profiles.id]
+  resume_id uuid [ref: > resumes.id]
+  cover_letter text
+  status text [default: 'DRAFT']
+  applied_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  notes text
+
+  Note: 'User applications to jobs with status tracking'
+
+  indexes {
+    (job_id, user_id) [unique, name: 'unique_job_user_application']
+  }
+}
+
+Table saved_jobs {
+  id uuid [pk]
+  job_id uuid [ref: > jobs.id]
+  user_id uuid [ref: > profiles.id]
+  saved_at timestamp [default: `now()`]
+  notes text
+
+  Note: 'User bookmarked jobs'
+
+  indexes {
+    (job_id, user_id) [unique, name: 'unique_job_user_save']
+  }
+}
+
+// ===========================================
+// RESUME MANAGEMENT TABLES
+// ===========================================
+
+Table resumes {
+  id uuid [pk]
+  user_id uuid [ref: > profiles.id]
+  title text [not null]
+  summary text
+  is_default boolean [default: false]
+  is_ai_optimized boolean [default: false]
+  original_content text
+  optimized_content text
+  file_url text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Main resume container with AI optimization tracking'
+}
+
+Table work_experiences {
+  id uuid [pk]
+  resume_id uuid [ref: > resumes.id]
+  company text [not null]
+  position text [not null]
+  description text [not null]
+  start_date date [not null]
+  end_date date
+  is_current_role boolean [default: false]
+  location text
+  skills text[]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Professional work experience entries'
+}
+
+Table educations {
+  id uuid [pk]
+  resume_id uuid [ref: > resumes.id]
+  institution text [not null]
+  degree text [not null]
+  field_of_study text [not null]
+  start_date date [not null]
+  end_date date
+  grade text
+  description text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Educational background entries'
+}
+
+Table skills {
+  id uuid [pk]
+  resume_id uuid [ref: > resumes.id]
+  name text [not null]
+  level text [default: 'BEGINNER']
+  category text [default: 'TECHNICAL']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Technical and soft skills with proficiency levels'
+}
+
+Table certifications {
+  id uuid [pk]
+  resume_id uuid [ref: > resumes.id]
+  name text [not null]
+  issuer text [not null]
+  issue_date date [not null]
+  expiry_date date
+  credential_id text
+  credential_url text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Professional certifications and credentials'
+}
+
+Table projects {
+  id uuid [pk]
+  resume_id uuid [ref: > resumes.id]
+  title text [not null]
+  description text [not null]
+  technologies text[]
+  project_url text
+  github_url text
+  start_date date [not null]
+  end_date date
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Portfolio projects and achievements'
+}
+
+Table languages {
+  id uuid [pk]
+  resume_id uuid [ref: > resumes.id]
+  name text [not null]
+  proficiency text [default: 'BASIC']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'Language proficiencies'
+}
+
+// ===========================================
+// AI FEATURES & ANALYTICS TABLES
+// ===========================================
+
+Table interview_sessions {
+  id uuid [pk]
+  user_id uuid [ref: > profiles.id]
+  job_id uuid [ref: > jobs.id]
+  session_type text [default: 'MOCK_INTERVIEW']
+  title text [not null]
+  questions jsonb
+  feedback jsonb
+  duration_minutes integer
+  completed_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  Note: 'AI-powered interview preparation sessions'
+}
+
+Table notifications {
+  id uuid [pk]
+  user_id uuid [ref: > profiles.id]
+  type text [default: 'SYSTEM']
+  title text [not null]
+  message text [not null]
+  is_read boolean [default: false]
+  action_url text
+  metadata jsonb
+  created_at timestamp [default: `now()`]
+
+  Note: 'System and job-related notifications'
+}
+
+Table activity_logs {
+  id uuid [pk]
+  user_id uuid [ref: > profiles.id]
+  activity_type text [not null]
+  description text [not null]
+  metadata jsonb
+  created_at timestamp [default: `now()`]
+
+  Note: 'User activity tracking for analytics'
+}
+
+// ===========================================
+// JOB CATEGORIZATION TABLES
+// ===========================================
+
+Table job_categories {
+  id uuid [pk]
+  name text [unique, not null]
+  description text
+  parent_id uuid [ref: > job_categories.id]
+  created_at timestamp [default: `now()`]
+
+  Note: 'Hierarchical job categories for filtering'
+}
+
+Table job_category_mappings {
+  job_id uuid [ref: > jobs.id]
+  category_id uuid [ref: > job_categories.id]
+
+  Note: 'Junction table for job-category many-to-many relationship'
+
+  indexes {
+    (job_id, category_id) [pk, name: 'job_category_pk']
+  }
+}
+
+// ===========================================
+// ENUMS AND CHECK CONSTRAINTS
+// ===========================================
+
+Enum job_type {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
+}
+
+Enum experience_level {
+  ENTRY
+  MID
+  SENIOR
+  EXECUTIVE
+}
+
+Enum application_status {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  INTERVIEW
+  OFFER
+  REJECTED
+  ACCEPTED
+}
+
+Enum skill_level {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+Enum skill_category {
+  TECHNICAL
+  SOFT
+  LANGUAGE
+  TOOL
+}
+
+Enum language_proficiency {
+  BASIC
+  CONVERSATIONAL
+  FLUENT
+  NATIVE
+}
+
+Enum company_size {
+  STARTUP
+  SMALL
+  MEDIUM
+  LARGE
+  ENTERPRISE
+}
+
+Enum interview_session_type {
+  MOCK_INTERVIEW
+  TECHNICAL_PREP
+  BEHAVIORAL_PREP
+}
+
+Enum notification_type {
+  JOB_MATCH
+  APPLICATION_UPDATE
+  INTERVIEW_REMINDER
+  SYSTEM
+}
+// ===========================================
+// END OF SCHEMA
