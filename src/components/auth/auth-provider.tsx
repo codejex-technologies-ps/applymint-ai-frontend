@@ -138,20 +138,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log('🚀 Starting user registration:', { email, metadata })
+      
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: metadata,
+          emailRedirectTo: `${window.location.origin}/verify-email`
         },
       })
       
       if (error) {
+        console.error('❌ SignUp error:', error)
         return { error: error.message }
       }
       
+      console.log('✅ User created:', data.user?.id)
+      
+      // Wait a moment for the database trigger to execute
+      if (data.user?.id) {
+        setTimeout(async () => {
+          try {
+            console.log('🔍 Checking profile creation for user:', data.user!.id)
+            const profile = await profilesService.getProfileById(data.user!.id)
+            if (profile) {
+              console.log('✅ Profile created successfully:', profile)
+            } else {
+              console.warn('⚠️  Profile not found after signup. This may indicate a database trigger issue.')
+            }
+          } catch (profileError) {
+            console.error('❌ Error checking profile:', profileError)
+          }
+        }, 2000) // Give the trigger time to execute
+      }
+      
       return {}
-    } catch {
+    } catch (error) {
+      console.error('❌ Unexpected signup error:', error)
       return { error: 'An unexpected error occurred' }
     }
   }
