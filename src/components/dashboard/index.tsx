@@ -9,6 +9,8 @@ export { DashboardHeader } from './dashboard-header'
 export { DashboardLayout } from './dashboard-layout'
 export { AnalyticsWidget } from './analytics-widget'
 export { NotificationCenter } from './notification-center'
+export { DashboardTour } from './dashboard-tour'
+export { DashboardEmptyState } from './empty-state'
 
 // Re-export types
 export type { StatsCardProps } from './stats-card'
