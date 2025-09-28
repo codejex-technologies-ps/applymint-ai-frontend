@@ -14,6 +14,7 @@ import {
   Award
 } from 'lucide-react'
 import { ResumeBuilder } from './resume-builder'
+import { ImportResume } from './import-resume'
 
 export function ResumeBuilderDemo() {
   const [activeTab, setActiveTab] = useState('personal')
@@ -160,59 +161,18 @@ export function ResumeBuilderDemo() {
 
           {/* Export & Import Tab - Demo */}
           <TabsContent value="export" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Export Features (Planned)</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 border border-border rounded">
-                      <div>
-                        <h4 className="font-medium">Modern Template</h4>
-                        <p className="text-sm text-muted-foreground">Clean, minimalist design</p>
-                      </div>
-                      <Button size="sm" variant="outline" disabled>
-                        <Download className="h-4 w-4 mr-1" />
-                        Coming Soon
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between p-3 border border-border rounded">
-                      <div>
-                        <h4 className="font-medium">Professional Template</h4>
-                        <p className="text-sm text-muted-foreground">Traditional corporate style</p>
-                      </div>
-                      <Button size="sm" variant="outline" disabled>
-                        <Download className="h-4 w-4 mr-1" />
-                        Coming Soon
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Import Features (Planned)</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-                      <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm font-medium">PDF/Word Upload</p>
-                      <p className="text-xs text-muted-foreground">Parse existing resumes</p>
-                    </div>
-                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded mx-auto mb-2 flex items-center justify-center">
-                        <span className="text-blue-600 font-bold text-xs">in</span>
-                      </div>
-                      <p className="text-sm font-medium">LinkedIn Import</p>
-                      <p className="text-xs text-muted-foreground">Import profile data</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="mb-4 p-4 bg-muted/20 rounded-lg">
+              <h3 className="font-medium mb-2">Resume Import & Export Demo</h3>
+              <p className="text-sm text-muted-foreground">
+                Try uploading a resume file (PDF/DOC) to see the import functionality in action. The system will simulate parsing and extract mock data.
+              </p>
             </div>
+            <ImportResume
+              onImportComplete={(data) => {
+                console.log('Demo: Imported resume data:', data)
+                alert('Demo: Resume imported successfully! In production, this would populate the resume builder forms.')
+              }}
+            />
           </TabsContent>
         </Tabs>
       </div>

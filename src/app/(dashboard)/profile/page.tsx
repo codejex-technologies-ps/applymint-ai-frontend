@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/form'
 import { useAuth } from '@/components/auth/auth-provider'
 import { ResumeBuilder } from '@/components/profile/resume-builder'
+import { ImportResume } from '@/components/profile/import-resume'
 
 // Enhanced profile schema with additional fields
 const profileSchema = z.object({
@@ -458,67 +459,13 @@ export default function ProfilePage() {
 
           {/* Export & Import Tab */}
           <TabsContent value="export" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* PDF Export */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Download className="h-5 w-5" />
-                    <span>Export Resume</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-muted-foreground text-sm">
-                    Export your resume as a professional PDF document. Choose from multiple templates to match your style.
-                  </p>
-                  
-                  <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
-                    <Download className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h4 className="font-medium mb-2">PDF Export Coming Soon</h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Export functionality will be available once you&apos;ve built your resume.
-                    </p>
-                    <Button variant="outline" disabled>
-                      <Download className="h-4 w-4 mr-2" />
-                      Export PDF
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Import Options */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <FileText className="h-5 w-5" />
-                    <span>Import Data</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-muted-foreground text-sm">
-                    Import your existing resume or LinkedIn profile data to quickly populate your profile.
-                  </p>
-                  
-                  <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
-                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h4 className="font-medium mb-2">Import Coming Soon</h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Upload PDFs, Word docs, or connect LinkedIn to import your professional data.
-                    </p>
-                    <div className="flex justify-center space-x-2">
-                      <Button variant="outline" disabled>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Upload Resume
-                      </Button>
-                      <Button variant="outline" disabled>
-                        <Linkedin className="h-4 w-4 mr-2" />
-                        Connect LinkedIn
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <ImportResume
+              onImportComplete={(data) => {
+                console.log('Imported resume data:', data)
+                // TODO: Integrate with resume builder to populate forms
+                alert('Resume imported successfully! Check console for data.')
+              }}
+            />
           </TabsContent>
         </Tabs>
       </div>
