@@ -4,11 +4,26 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, User, Mail, Phone, Save, Check } from 'lucide-react'
+import { 
+  Loader2, 
+  User, 
+  Mail, 
+  Phone, 
+  Save, 
+  Check, 
+  Globe,
+  Linkedin,
+  Github,
+  MapPin,
+  FileText,
+  Download
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Form,
   FormControl,
@@ -19,10 +34,16 @@ import {
 } from '@/components/ui/form'
 import { useAuth } from '@/components/auth/auth-provider'
 
+// Enhanced profile schema with additional fields
 const profileSchema = z.object({
   first_name: z.string().min(1, 'First name is required').max(50),
   last_name: z.string().min(1, 'Last name is required').max(50),
   phone_number: z.string().optional().or(z.literal('')),
+  bio: z.string().max(500, 'Bio must be less than 500 characters').optional().or(z.literal('')),
+  location: z.string().max(100, 'Location must be less than 100 characters').optional().or(z.literal('')),
+  website: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
+  linkedin_url: z.string().url('Please enter a valid LinkedIn URL').optional().or(z.literal('')),
+  github_url: z.string().url('Please enter a valid GitHub URL').optional().or(z.literal('')),
 })
 
 type ProfileForm = z.infer<typeof profileSchema>
@@ -32,22 +53,34 @@ export default function ProfilePage() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState('personal')
 
-  const form = useForm<ProfileForm>({
+  // Profile form
+  const profileForm = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       first_name: profile?.first_name || '',
       last_name: profile?.last_name || '',
       phone_number: profile?.phone_number || '',
+      bio: '',
+      location: '',
+      website: '',
+      linkedin_url: '',
+      github_url: '',
     },
   })
 
-  // Reset form when profile loads
-  if (profile && !form.formState.isDirty) {
-    form.reset({
+  // Reset profile form when profile loads
+  if (profile && !profileForm.formState.isDirty) {
+    profileForm.reset({
       first_name: profile.first_name || '',
       last_name: profile.last_name || '',
       phone_number: profile.phone_number || '',
+      bio: '',
+      location: '',
+      website: '',
+      linkedin_url: '',
+      github_url: '',
     })
   }
 
@@ -80,7 +113,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="container mx-auto py-8 px-4">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
@@ -92,7 +125,7 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="container mx-auto py-8 px-4">
-        <div className="max-w-2xl mx-auto text-center">
+        <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-2xl font-bold text-primary mb-4">Access Denied</h1>
           <p className="text-muted-foreground">Please sign in to view your profile.</p>
         </div>
@@ -102,12 +135,12 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-primary">Profile Settings</h1>
+          <h1 className="text-3xl font-bold text-primary">Profile &amp; Resume Builder</h1>
           <p className="text-muted-foreground">
-            Manage your personal information and preferences
+            Manage your personal information, build your resume, and export to PDF
           </p>
         </div>
 
@@ -126,149 +159,385 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Profile Information Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <User className="h-5 w-5" />
-              <span>Personal Information</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="first_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-primary font-medium">First Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="John"
-                            className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20"
-                            disabled={isUpdating}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+        {/* Main Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="personal" className="flex items-center space-x-2">
+              <User className="h-4 w-4" />
+              <span>Personal Info</span>
+            </TabsTrigger>
+            <TabsTrigger value="resume" className="flex items-center space-x-2">
+              <FileText className="h-4 w-4" />
+              <span>Resume Builder</span>
+            </TabsTrigger>
+            <TabsTrigger value="export" className="flex items-center space-x-2">
+              <Download className="h-4 w-4" />
+              <span>Export &amp; Import</span>
+            </TabsTrigger>
+          </TabsList>
 
-                  <FormField
-                    control={form.control}
-                    name="last_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-primary font-medium">Last Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Doe"
-                            className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20"
-                            disabled={isUpdating}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+          {/* Personal Information Tab */}
+          <TabsContent value="personal" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Basic Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <User className="h-5 w-5" />
+                    <span>Basic Information</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...profileForm}>
+                    <form onSubmit={profileForm.handleSubmit(onSubmit)} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={profileForm.control}
+                          name="first_name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-primary font-medium">First Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="John"
+                                  className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20"
+                                  disabled={isUpdating}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                <FormField
-                  control={form.control}
-                  name="phone_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-primary font-medium">Phone Number</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            {...field}
-                            placeholder="+1 (555) 123-4567"
-                            className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20 pl-10"
-                            disabled={isUpdating}
-                          />
+                        <FormField
+                          control={profileForm.control}
+                          name="last_name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-primary font-medium">Last Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="Doe"
+                                  className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20"
+                                  disabled={isUpdating}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={profileForm.control}
+                        name="phone_number"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-primary font-medium">Phone Number</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  {...field}
+                                  placeholder="+1 (555) 123-4567"
+                                  className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20 pl-10"
+                                  disabled={isUpdating}
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="bio"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-primary font-medium">Bio</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                placeholder="Tell us about yourself..."
+                                className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20 min-h-[100px]"
+                                disabled={isUpdating}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="location"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-primary font-medium">Location</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  {...field}
+                                  placeholder="San Francisco, CA"
+                                  className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20 pl-10"
+                                  disabled={isUpdating}
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button
+                        type="submit"
+                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                        disabled={isUpdating || !profileForm.formState.isDirty}
+                      >
+                        {isUpdating ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Save Changes
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+
+              {/* Links & Social */}
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Globe className="h-5 w-5" />
+                      <span>Links &amp; Social</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={profileForm.control}
+                      name="website"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-primary font-medium">Website</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                {...field}
+                                placeholder="https://yourwebsite.com"
+                                className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20 pl-10"
+                                disabled={isUpdating}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={profileForm.control}
+                      name="linkedin_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-primary font-medium">LinkedIn</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Linkedin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                {...field}
+                                placeholder="https://linkedin.com/in/yourprofile"
+                                className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20 pl-10"
+                                disabled={isUpdating}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={profileForm.control}
+                      name="github_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-primary font-medium">GitHub</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Github className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                {...field}
+                                placeholder="https://github.com/yourusername"
+                                className="bg-background text-foreground border border-input focus:border-ring focus:ring-2 focus:ring-ring/20 pl-10"
+                                disabled={isUpdating}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Account Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Mail className="h-5 w-5" />
+                      <span>Account Information</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Email Address</label>
+                        <p className="text-foreground mt-1">{user.email}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Email cannot be changed from this page. Contact support if you need to update your email address.
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Account Created</label>
+                        <p className="text-foreground mt-1">
+                          {user.createdAt.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Email Verification Status</label>
+                        <div className="flex items-center space-x-2 mt-1">
+                          {user.isEmailVerified ? (
+                            <>
+                              <div className="h-2 w-2 bg-chart-2 rounded-full"></div>
+                              <span className="text-chart-2 text-sm">Verified</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="h-2 w-2 bg-chart-4 rounded-full"></div>
+                              <span className="text-chart-4 text-sm">Pending Verification</span>
+                            </>
+                          )}
                         </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                  disabled={isUpdating || !form.formState.isDirty}
-                >
-                  {isUpdating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-
-        {/* Account Information Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Mail className="h-5 w-5" />
-              <span>Account Information</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Email Address</label>
-                <p className="text-foreground mt-1">{user.email}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Email cannot be changed from this page. Contact support if you need to update your email address.
-                </p>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Account Created</label>
-                <p className="text-foreground mt-1">
-                  {user.createdAt.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Email Verification Status</label>
-                <div className="flex items-center space-x-2 mt-1">
-                  {user.isEmailVerified ? (
-                    <>
-                      <div className="h-2 w-2 bg-chart-2 rounded-full"></div>
-                      <span className="text-chart-2 text-sm">Verified</span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="h-2 w-2 bg-chart-4 rounded-full"></div>
-                      <span className="text-chart-4 text-sm">Pending Verification</span>
-                    </>
-                  )}
-                </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
+
+          {/* Resume Builder Tab */}
+          <TabsContent value="resume" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Resume Builder</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Resume Builder Coming Soon</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Build your professional resume with our intuitive drag-and-drop interface.
+                    Add work experience, education, skills, and more.
+                  </p>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <p>✨ Multiple professional templates</p>
+                    <p>📝 Dynamic sections (Experience, Education, Skills)</p>
+                    <p>🎯 Real-time preview</p>
+                    <p>📄 PDF export functionality</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Export & Import Tab */}
+          <TabsContent value="export" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* PDF Export */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Download className="h-5 w-5" />
+                    <span>Export Resume</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-muted-foreground text-sm">
+                    Export your resume as a professional PDF document. Choose from multiple templates to match your style.
+                  </p>
+                  
+                  <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
+                    <Download className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h4 className="font-medium mb-2">PDF Export Coming Soon</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Export functionality will be available once you&apos;ve built your resume.
+                    </p>
+                    <Button variant="outline" disabled>
+                      <Download className="h-4 w-4 mr-2" />
+                      Export PDF
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Import Options */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="h-5 w-5" />
+                    <span>Import Data</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-muted-foreground text-sm">
+                    Import your existing resume or LinkedIn profile data to quickly populate your profile.
+                  </p>
+                  
+                  <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
+                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h4 className="font-medium mb-2">Import Coming Soon</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Upload PDFs, Word docs, or connect LinkedIn to import your professional data.
+                    </p>
+                    <div className="flex justify-center space-x-2">
+                      <Button variant="outline" disabled>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Upload Resume
+                      </Button>
+                      <Button variant="outline" disabled>
+                        <Linkedin className="h-4 w-4 mr-2" />
+                        Connect LinkedIn
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )
