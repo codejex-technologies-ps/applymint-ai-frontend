@@ -196,13 +196,12 @@ export type {
 } from '@/lib/db/schema/languages';
 
 export type { 
-  SessionType, 
   SessionStatus 
 } from '@/lib/db/schema/interview-sessions';
 
 export type { 
   QuestionType, 
-  DifficultyLevel 
+  QuestionDifficultyLevel
 } from '@/lib/db/schema/interview-questions';
 
 export type { 
