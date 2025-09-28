@@ -141,12 +141,7 @@ export function ResumeBuilderDemo() {
                 Try adding work experience, education, and skills. All forms include validation and the interface supports add/remove functionality.
               </p>
             </div>
-            <ResumeBuilder
-              onSave={async (data) => {
-                console.log('Demo Resume Data:', data)
-                alert('Resume saved successfully! (Demo mode - check console for data)')
-              }}
-            />
+            <ResumeBuilder />
           </TabsContent>
 
           {/* Export & Import Tab - Demo */}
@@ -157,12 +152,7 @@ export function ResumeBuilderDemo() {
                 Try uploading a resume file (PDF/DOC) to see the import functionality in action. The system will simulate parsing and extract mock data.
               </p>
             </div>
-            <ImportResume
-              onImportComplete={(data) => {
-                console.log('Demo: Imported resume data:', data)
-                alert('Demo: Resume imported successfully! In production, this would populate the resume builder forms.')
-              }}
-            />
+            <ImportResume />
           </TabsContent>
         </Tabs>
       </div>

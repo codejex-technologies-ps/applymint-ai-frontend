@@ -39,11 +39,8 @@ interface ImportedData {
   }>
 }
 
-interface ImportResumeProps {
-  onImportComplete?: (data: ImportedData) => void
-}
-
-export function ImportResume({ onImportComplete }: ImportResumeProps) {
+// Component requires no props  
+export function ImportResume() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
@@ -136,16 +133,17 @@ export function ImportResume({ onImportComplete }: ImportResumeProps) {
     setUploadSuccess(true)
     setIsUploading(false)
 
-    if (onImportComplete) {
-      onImportComplete(mockData)
-    }
+    // TODO: Integrate with resume builder or save to database
+    console.log('Resume imported successfully:', mockData)
+    alert('Resume imported successfully! Check console for data.')
+    
     } catch (error) {
       console.error('Upload error:', error)
       setUploadError(error instanceof Error ? error.message : 'An error occurred during upload')
       setIsUploading(false)
       setUploadProgress(0)
     }
-  }, [onImportComplete])
+  }, [])
 
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]

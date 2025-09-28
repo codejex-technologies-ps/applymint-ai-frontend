@@ -74,11 +74,8 @@ const resumeSchema = z.object({
 
 type ResumeFormData = z.infer<typeof resumeSchema>
 
-interface ResumeBuilderProps {
-  onSave?: (data: ResumeFormData) => void | Promise<void>
-}
-
-export function ResumeBuilder({ onSave }: ResumeBuilderProps) {
+// Component requires no props
+export function ResumeBuilder() {
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<ResumeFormData>({
@@ -157,10 +154,17 @@ export function ResumeBuilder({ onSave }: ResumeBuilderProps) {
   const handleSubmit = async (data: ResumeFormData) => {
     try {
       setIsLoading(true)
-      console.log('Resume data:', data)
-      await onSave?.(data)
+      console.log('Resume data saved:', data)
+      
+      // TODO: Implement server action to save resume data to database
+      // await saveResumeAction(data)
+      
+      // Show success message (you could use toast here)
+      alert('Resume saved successfully!')
+      
     } catch (error) {
       console.error('Error saving resume:', error)
+      alert('Error saving resume. Please try again.')
     } finally {
       setIsLoading(false)
     }

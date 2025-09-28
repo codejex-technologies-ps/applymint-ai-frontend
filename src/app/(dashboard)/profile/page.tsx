@@ -9,6 +9,9 @@ import { ProfileTabsClient } from '@/components/profile/profile-tabs-client'
 import { ResumeBuilder } from '@/components/profile/resume-builder'
 import { ImportResume } from '@/components/profile/import-resume'
 
+// Force dynamic rendering - no static generation
+export const dynamic = 'force-dynamic'
+
 // Loading component for async sections
 function ProfileLoading() {
   return (
@@ -87,23 +90,12 @@ async function ProfileContent() {
       }
       resumeBuilderTab={
         <Suspense fallback={<ProfileLoading />}>
-          <ResumeBuilder
-            onSave={async (data) => {
-              console.log('Resume data:', data)
-              // TODO: Implement save to database via server action
-            }}
-          />
+          <ResumeBuilder />
         </Suspense>
       }
       exportImportTab={
         <Suspense fallback={<ProfileLoading />}>
-          <ImportResume
-            onImportComplete={(data) => {
-              console.log('Imported resume data:', data)
-              // TODO: Integrate with resume builder to populate forms
-              alert('Resume imported successfully! Check console for data.')
-            }}
-          />
+          <ImportResume />
         </Suspense>
       }
     />
