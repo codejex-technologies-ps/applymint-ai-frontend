@@ -410,12 +410,20 @@ export interface InterviewSessionSummary {
 // WebSocket message types for real-time communication
 export type WebSocketMessageType = 
   | 'session_start'
+  | 'session_started'
+  | 'start_session'
+  | 'generate_question'
   | 'question_generated'
+  | 'question_generated_chunk'
+  | 'submit_answer'
   | 'answer_submitted'
   | 'feedback_generated'
+  | 'feedback_generated_chunk'
   | 'session_pause'
   | 'session_resume'
+  | 'end_session'
   | 'session_end'
+  | 'session_ended'
   | 'error'
   | 'heartbeat';
 
