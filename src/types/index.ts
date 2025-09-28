@@ -311,6 +311,150 @@ export interface DashboardStats {
   responseRate: number;
 }
 
+// AI Interview Simulator types
+export type InterviewMode = 'text' | 'voice';
+export type InterviewStatus = 'pending' | 'active' | 'paused' | 'completed' | 'cancelled';
+export type QuestionType = 'technical' | 'behavioral' | 'situational' | 'company_specific';
+export type InterviewDifficulty = 'entry' | 'mid' | 'senior' | 'expert';
+
+export interface InterviewSession {
+  id: string;
+  userId: string;
+  title: string;
+  mode: InterviewMode;
+  status: InterviewStatus;
+  jobRole: string;
+  company?: string;
+  difficulty: InterviewDifficulty;
+  duration: number; // in minutes
+  currentQuestionIndex: number;
+  totalQuestions: number;
+  startedAt?: string;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InterviewQuestion {
+  id: string;
+  sessionId: string;
+  type: QuestionType;
+  question: string;
+  context?: string;
+  expectedAnswerPoints?: string[];
+  difficulty: InterviewDifficulty;
+  timeLimit?: number; // in seconds
+  order: number;
+  askedAt?: string;
+  answeredAt?: string;
+}
+
+export interface InterviewAnswer {
+  id: string;
+  questionId: string;
+  sessionId: string;
+  answer: string;
+  audioUrl?: string; // for voice mode
+  transcription?: string; // for voice mode
+  duration: number; // in seconds
+  submittedAt: string;
+}
+
+export interface InterviewFeedback {
+  id: string;
+  answerId: string;
+  questionId: string;
+  sessionId: string;
+  
+  // Scoring (1-10 scale)
+  communicationScore: number;
+  technicalScore: number;
+  completenessScore: number;
+  overallScore: number;
+  
+  // Detailed feedback
+  strengths: string[];
+  weaknesses: string[];
+  suggestions: string[];
+  improvedAnswer?: string;
+  
+  createdAt: string;
+}
+
+export interface InterviewSessionSummary {
+  sessionId: string;
+  overallScore: number;
+  totalQuestions: number;
+  answeredQuestions: number;
+  averageResponseTime: number; // in seconds
+  
+  // Score breakdown
+  communicationAvg: number;
+  technicalAvg: number;
+  completenessAvg: number;
+  
+  // Performance by question type
+  technicalQuestions: { answered: number; avgScore: number };
+  behavioralQuestions: { answered: number; avgScore: number };
+  situationalQuestions: { answered: number; avgScore: number };
+  
+  // Key insights
+  topStrengths: string[];
+  areasForImprovement: string[];
+  recommendedResources: string[];
+  nextSteps: string[];
+  
+  generatedAt: string;
+}
+
+// WebSocket message types for real-time communication
+export type WebSocketMessageType = 
+  | 'session_start'
+  | 'question_generated'
+  | 'answer_submitted'
+  | 'feedback_generated'
+  | 'session_pause'
+  | 'session_resume'
+  | 'session_end'
+  | 'error'
+  | 'heartbeat';
+
+export interface WebSocketMessage {
+  type: WebSocketMessageType;
+  payload: Record<string, unknown>;
+  timestamp: string;
+  sessionId?: string;
+}
+
+// Gemini Live API types
+export interface GeminiLiveConfig {
+  model: 'gemini-2.5-flash-native-audio-preview-09-2025' | 'gemini-live-2.5-flash-preview';
+  ephemeralToken: string;
+  audioFormat: {
+    sampleRate: number;
+    channels: number;
+    bitDepth: number;
+  };
+}
+
+export interface AudioChunk {
+  data: string; // base64 encoded PCM
+  timestamp: number;
+  duration: number;
+}
+
+// Interview setup types
+export interface InterviewSetupData {
+  title: string;
+  mode: InterviewMode;
+  jobRole: string;
+  company?: string;
+  difficulty: InterviewDifficulty;
+  duration: number;
+  questionTypes: QuestionType[];
+  customInstructions?: string;
+}
+
 export interface RecentActivity {
   id: string;
   type:
