@@ -46,7 +46,7 @@ const defaultActions: QuickAction[] = [
     title: 'Edit Profile',
     description: 'Update your personal information',
     icon: User,
-    href: '/dashboard/profile',
+    href: '/profile',
     gradient: 'from-chart-2 to-chart-3',
   },
   {
@@ -54,7 +54,7 @@ const defaultActions: QuickAction[] = [
     title: 'Upload Resume',
     description: 'Update your resume for better matching',
     icon: Upload,
-    href: '/dashboard/profile/resume',
+    href: '/profile/resume',
     gradient: 'from-chart-3 to-chart-4',
   },
   {

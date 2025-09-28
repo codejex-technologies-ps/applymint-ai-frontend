@@ -143,7 +143,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <DropdownMenuSeparator />
               
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/profile" className="flex items-center">
+                <Link href="/profile" className="flex items-center">
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </Link>
