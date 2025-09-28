@@ -119,7 +119,7 @@ const mockNotifications: Notification[] = [
     message: 'Complete your profile to get 40% more job recommendations.',
     isRead: true,
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-    actionUrl: '/dashboard/profile',
+    actionUrl: '/profile',
   },
   {
     id: '5',

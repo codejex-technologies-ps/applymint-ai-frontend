@@ -10,13 +10,29 @@ export interface AuthUser {
   updated_at: string;
 }
 
-// This interface matches our profiles table schema
+// This interface matches our extended profiles table schema
 export interface UserProfile {
   id: string;
   email: string;
   first_name: string | null;
   last_name: string | null;
   phone_number: string | null;
+  
+  // Extended profile fields
+  bio: string | null;
+  location: string | null;
+  website: string | null;
+  linkedin_url: string | null;
+  github_url: string | null;
+  twitter_url: string | null;
+  portfolio_url: string | null;
+  current_position: string | null;
+  company: string | null;
+  years_of_experience: number | null;
+  availability_status: 'available' | 'not_available' | 'open_to_opportunities';
+  preferred_work_type: 'full_time' | 'part_time' | 'contract' | 'freelance' | 'internship';
+  profile_visibility: 'public' | 'private' | 'connections_only';
+  
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +44,22 @@ export interface User {
   firstName?: string;
   lastName?: string;
   phoneNumber?: string;
+  
+  // Extended profile fields
+  bio?: string;
+  location?: string;
+  website?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  twitterUrl?: string;
+  portfolioUrl?: string;
+  currentPosition?: string;
+  company?: string;
+  yearsOfExperience?: number;
+  availabilityStatus?: 'available' | 'not_available' | 'open_to_opportunities';
+  preferredWorkType?: 'full_time' | 'part_time' | 'contract' | 'freelance' | 'internship';
+  profileVisibility?: 'public' | 'private' | 'connections_only';
+  
   isEmailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;

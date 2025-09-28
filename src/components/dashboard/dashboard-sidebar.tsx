@@ -105,7 +105,7 @@ const sidebarItems: SidebarItem[] = [
   {
     id: 'profile',
     label: 'Profile',
-    href: '/dashboard/profile',
+    href: '/profile',
     icon: User,
   },
   {

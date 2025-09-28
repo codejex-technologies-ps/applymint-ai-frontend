@@ -163,7 +163,7 @@ export const JobRecommendations: React.FC<JobRecommendationsProps> = ({
               Complete your profile to receive AI-powered job recommendations.
             </p>
             <Button asChild>
-              <Link href="/dashboard/profile">
+              <Link href="/profile">
                 Complete Profile
               </Link>
             </Button>
