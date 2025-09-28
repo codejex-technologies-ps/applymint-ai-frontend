@@ -171,9 +171,12 @@ export interface JobMarketInsights {
 // Export enum types from schemas
 export type { 
   JobType, 
-  ExperienceLevel, 
-  CompanySize 
+  ExperienceLevel
 } from '@/lib/db/schema/jobs';
+
+export type { 
+  CompanySize 
+} from '@/lib/db/schema/companies';
 
 export type { 
   SkillLevel, 

@@ -1,14 +1,14 @@
-import { eq, and, desc, asc, ilike, or, gte, lte, inArray } from 'drizzle-orm';
+import { eq, and, desc, ilike, or, gte, lte, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db/connection';
-import { jobs, companies, jobApplications, savedJobs } from '@/lib/db/schema';
+import { jobs, companies, jobApplications, savedJobs, type Job, type NewJob } from '@/lib/db/schema';
 import type { 
-  Job, 
-  NewJob, 
-  UpdateJob, 
   JobWithCompany, 
   JobSearchFilters,
   DrizzlePaginatedResponse 
 } from '@/types/drizzle';
+
+// Define update type locally to avoid conflicts
+type UpdateJob = Partial<Omit<Job, 'id' | 'createdAt' | 'updatedAt'>>;
 
 // Drizzle-based jobs service
 export const drizzleJobsService = {
@@ -63,11 +63,11 @@ export const drizzleJobsService = {
       }
 
       if (filters.jobTypes && filters.jobTypes.length > 0) {
-        conditions.push(inArray(jobs.jobType, filters.jobTypes as any));
+        conditions.push(inArray(jobs.jobType, filters.jobTypes as Array<'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'FREELANCE'>));
       }
 
       if (filters.experienceLevel) {
-        conditions.push(eq(jobs.experienceLevel, filters.experienceLevel as any));
+        conditions.push(eq(jobs.experienceLevel, filters.experienceLevel as 'ENTRY' | 'MID' | 'SENIOR' | 'EXECUTIVE'));
       }
 
       if (filters.salaryMin) {
