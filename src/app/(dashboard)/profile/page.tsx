@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useAuth } from '@/components/auth/auth-provider'
+import { ResumeBuilder } from '@/components/profile/resume-builder'
 
 // Enhanced profile schema with additional fields
 const profileSchema = z.object({
@@ -447,30 +448,12 @@ export default function ProfilePage() {
 
           {/* Resume Builder Tab */}
           <TabsContent value="resume" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5" />
-                  <span>Resume Builder</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Resume Builder Coming Soon</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Build your professional resume with our intuitive drag-and-drop interface.
-                    Add work experience, education, skills, and more.
-                  </p>
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <p>✨ Multiple professional templates</p>
-                    <p>📝 Dynamic sections (Experience, Education, Skills)</p>
-                    <p>🎯 Real-time preview</p>
-                    <p>📄 PDF export functionality</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <ResumeBuilder
+              onSave={async (data) => {
+                console.log('Resume data:', data)
+                // TODO: Implement save to database
+              }}
+            />
           </TabsContent>
 
           {/* Export & Import Tab */}
