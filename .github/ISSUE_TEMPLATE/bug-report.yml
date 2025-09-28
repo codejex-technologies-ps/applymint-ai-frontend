@@ -1,0 +1,124 @@
+name: "🐛 Bug Report"
+description: "Report a bug or issue with ApplyMint AI"
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug Report
+
+        Thanks for taking the time to report a bug! This helps us improve ApplyMint AI for everyone.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: "What happened? Please provide a clear and concise description of the bug."
+      placeholder: "Describe what you were doing when the bug occurred..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: "How can we reproduce this bug? Please provide step-by-step instructions."
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+      value: |
+        1.
+        2.
+        3.
+        4.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: "What should have happened instead?"
+      placeholder: "Describe what you expected to happen..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: "What actually happened?"
+      placeholder: "Describe what actually happened..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: "How severe is this bug?"
+      options:
+        - "Critical - Blocks core functionality, affects all users"
+        - "High - Major feature broken, affects many users"
+        - "Medium - Feature partially broken, affects some users"
+        - "Low - Minor issue, cosmetic or edge case"
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: "Which browser are you using?"
+      placeholder: "e.g., Chrome 120.0, Firefox 119.0, Safari 17.0"
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: "Which operating system are you using?"
+      placeholder: "e.g., Windows 11, macOS 14.0, Ubuntu 22.04"
+
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      description: "What device are you using?"
+      placeholder: "e.g., Desktop, Laptop, Mobile Phone, Tablet"
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: "Add any other context about the problem here. Include screenshots, console errors, or network logs if relevant."
+      placeholder: "Any additional information that might help us debug this issue..."
+
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      description: "Please verify these before submitting:"
+      options:
+        - label: "I have searched for existing issues and this hasn't been reported before"
+          required: true
+        - label: "I have tried clearing my browser cache and cookies"
+          required: false
+        - label: "I have tried reproducing this in an incognito/private browsing window"
+          required: false
+        - label: "This bug occurs on the latest version of ApplyMint AI"
+          required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: "If you have access to developer tools, please provide:"
+      placeholder: |
+        - Node.js version:
+        - Browser console errors:
+        - Network request failures:
+        - Any other relevant technical details:
