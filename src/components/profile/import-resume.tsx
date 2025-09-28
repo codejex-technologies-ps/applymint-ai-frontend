@@ -51,33 +51,45 @@ export function ImportResume({ onImportComplete }: ImportResumeProps) {
   const [importedData, setImportedData] = useState<ImportedData | null>(null)
 
   // Mock file upload and parsing simulation
-  const simulateFileUpload = useCallback(async (_file: File) => {
+  const simulateFileUpload = useCallback(async (file: File) => {
     setIsUploading(true)
     setUploadError(null)
     setUploadProgress(0)
 
-    // Simulate upload progress
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval)
-          return 90
-        }
-        return prev + 10
-      })
-    }, 200)
+    try {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('Please upload a PDF, DOC, or DOCX file')
+      }
 
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    clearInterval(progressInterval)
-    setUploadProgress(100)
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('File size must be less than 10MB')
+      }
 
-    // Simulate successful parsing with mock data
-    const mockData: ImportedData = {
-      personalInfo: {
-        firstName: 'John',
-        lastName: 'Doe',
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval)
+            return 90
+          }
+          return prev + 10
+        })
+      }, 200)
+
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      clearInterval(progressInterval)
+      setUploadProgress(100)
+
+      // Simulate successful parsing with mock data
+      const mockData: ImportedData = {
+        personalInfo: {
+          firstName: 'John',
+          lastName: 'Doe',
         email: 'john.doe@example.com',
         phone: '+1 (555) 123-4567',
         location: 'San Francisco, CA',
@@ -126,6 +138,12 @@ export function ImportResume({ onImportComplete }: ImportResumeProps) {
 
     if (onImportComplete) {
       onImportComplete(mockData)
+    }
+    } catch (error) {
+      console.error('Upload error:', error)
+      setUploadError(error instanceof Error ? error.message : 'An error occurred during upload')
+      setIsUploading(false)
+      setUploadProgress(0)
     }
   }, [onImportComplete])
 

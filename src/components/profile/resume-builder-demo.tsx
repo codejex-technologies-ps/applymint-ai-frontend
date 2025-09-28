@@ -146,16 +146,6 @@ export function ResumeBuilderDemo() {
                 console.log('Demo Resume Data:', data)
                 alert('Resume saved successfully! (Demo mode - check console for data)')
               }}
-              initialData={{
-                title: 'Software Engineer Resume',
-                summary: 'Experienced software engineer with expertise in modern web technologies.',
-                experience: [],
-                education: [],
-                skills: [],
-                certifications: [],
-                projects: [],
-                languages: [],
-              }}
             />
           </TabsContent>
 
