@@ -1,0 +1,1342 @@
+openapi: 3.0.3
+info:
+  title: ApplyMint AI API
+  description: |
+    Complete API specification for ApplyMint AI job application platform.
+    
+    ## Authentication
+    All endpoints except public job/company listings require authentication via Supabase Auth.
+    Include the JWT token in the Authorization header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+  version: 1.0.0
+  contact:
+    name: ApplyMint AI Support
+    url: https://applymint.ai
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://pidjubyaqzoitmbixzbf.supabase.co/functions/v1
+    description: Production Supabase Functions
+  - url: http://localhost:54321/functions/v1
+    description: Local Development
+
+tags:
+  - name: Authentication
+    description: User authentication and registration
+  - name: Profiles
+    description: User profile management
+  - name: Companies
+    description: Company information
+  - name: Jobs
+    description: Job listings and management
+  - name: Resumes
+    description: Resume management
+  - name: Skills
+    description: Skills management
+  - name: Work Experiences
+    description: Work experience tracking
+  - name: Educations
+    description: Education history
+  - name: Certifications
+    description: Professional certifications
+  - name: Projects
+    description: Project portfolio
+  - name: Languages
+    description: Language proficiency
+  - name: Job Applications
+    description: Job application submissions
+  - name: Saved Jobs
+    description: Bookmarked jobs
+  - name: Job Alerts
+    description: Job alert preferences
+  - name: User Preferences
+    description: User preferences and settings
+  - name: Notifications
+    description: User notifications
+
+security:
+  - BearerAuth: []
+
+paths:
+  /profiles:
+    get:
+      tags: [Profiles]
+      summary: Get current user's profile
+      description: Retrieve the authenticated user's profile with all related data
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    $ref: '#/components/schemas/ProfileWithRelations'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags: [Profiles]
+      summary: Update current user's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    $ref: '#/components/schemas/Profile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /profiles/{id}:
+    get:
+      tags: [Profiles]
+      summary: Get specific profile by ID
+      parameters:
+        - $ref: '#/components/parameters/ProfileId'
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    $ref: '#/components/schemas/ProfileWithRelations'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /companies:
+    get:
+      tags: [Companies]
+      summary: List companies
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: industry
+          in: query
+          schema:
+            type: string
+        - name: size
+          in: query
+          schema:
+            $ref: '#/components/schemas/CompanySize'
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: query
+          in: query
+          description: Search query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Companies retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  companies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Company'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Companies]
+      summary: Create a new company
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyCreate'
+      responses:
+        '201':
+          description: Company created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  company:
+                    $ref: '#/components/schemas/Company'
+
+  /companies/{id}:
+    get:
+      tags: [Companies]
+      summary: Get company by ID
+      parameters:
+        - $ref: '#/components/parameters/CompanyId'
+      responses:
+        '200':
+          description: Company retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  company:
+                    $ref: '#/components/schemas/CompanyWithJobs'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /jobs:
+    get:
+      tags: [Jobs]
+      summary: List jobs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: jobType
+          in: query
+          schema:
+            $ref: '#/components/schemas/JobType'
+        - name: experienceLevel
+          in: query
+          schema:
+            $ref: '#/components/schemas/ExperienceLevel'
+        - name: isRemote
+          in: query
+          schema:
+            type: boolean
+        - name: minSalary
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Jobs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /jobs/{id}:
+    get:
+      tags: [Jobs]
+      summary: Get job by ID
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: Job retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job:
+                    $ref: '#/components/schemas/JobWithCompany'
+
+  /resumes:
+    get:
+      tags: [Resumes]
+      summary: List user's resumes
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: isPrimary
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Resumes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resumes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Resume'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Resumes]
+      summary: Create a new resume
+      description: Create a resume with optional nested skills, work experiences, educations, etc.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResumeCreate'
+      responses:
+        '201':
+          description: Resume created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resume:
+                    $ref: '#/components/schemas/ResumeWithRelations'
+
+  /resumes/{id}:
+    get:
+      tags: [Resumes]
+      summary: Get resume by ID
+      parameters:
+        - $ref: '#/components/parameters/ResumeId'
+      responses:
+        '200':
+          description: Resume retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resume:
+                    $ref: '#/components/schemas/ResumeWithRelations'
+
+  /skills:
+    get:
+      tags: [Skills]
+      summary: List user's skills
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: resumeId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: category
+          in: query
+          schema:
+            $ref: '#/components/schemas/SkillCategory'
+        - name: level
+          in: query
+          schema:
+            $ref: '#/components/schemas/SkillLevel'
+      responses:
+        '200':
+          description: Skills retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skills:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Skill'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Skills]
+      summary: Add a new skill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillCreate'
+      responses:
+        '201':
+          description: Skill created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skill:
+                    $ref: '#/components/schemas/Skill'
+
+  /skills/{id}:
+    get:
+      tags: [Skills]
+      summary: Get skill by ID
+      parameters:
+        - $ref: '#/components/parameters/SkillId'
+      responses:
+        '200':
+          description: Skill retrieved successfully
+    put:
+      tags: [Skills]
+      summary: Update skill
+      parameters:
+        - $ref: '#/components/parameters/SkillId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillUpdate'
+      responses:
+        '200':
+          description: Skill updated successfully
+    delete:
+      tags: [Skills]
+      summary: Delete skill
+      parameters:
+        - $ref: '#/components/parameters/SkillId'
+      responses:
+        '200':
+          description: Skill deleted successfully
+
+  /work-experiences:
+    get:
+      tags: [Work Experiences]
+      summary: List user's work experiences
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: resumeId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: isCurrent
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Work experiences retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workExperiences:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkExperience'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Work Experiences]
+      summary: Add work experience
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkExperienceCreate'
+      responses:
+        '201':
+          description: Work experience created successfully
+
+  /work-experiences/{id}:
+    get:
+      tags: [Work Experiences]
+      summary: Get work experience by ID
+      parameters:
+        - $ref: '#/components/parameters/WorkExperienceId'
+      responses:
+        '200':
+          description: Work experience retrieved successfully
+    put:
+      tags: [Work Experiences]
+      summary: Update work experience
+      parameters:
+        - $ref: '#/components/parameters/WorkExperienceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkExperienceUpdate'
+      responses:
+        '200':
+          description: Work experience updated successfully
+    delete:
+      tags: [Work Experiences]
+      summary: Delete work experience
+      parameters:
+        - $ref: '#/components/parameters/WorkExperienceId'
+      responses:
+        '200':
+          description: Work experience deleted successfully
+
+  /job-applications:
+    get:
+      tags: [Job Applications]
+      summary: List user's job applications
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ApplicationStatus'
+      responses:
+        '200':
+          description: Applications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JobApplication'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Job Applications]
+      summary: Submit job application
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobApplicationCreate'
+      responses:
+        '201':
+          description: Application submitted successfully
+
+  /saved-jobs:
+    get:
+      tags: [Saved Jobs]
+      summary: List saved jobs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Saved jobs retrieved successfully
+    post:
+      tags: [Saved Jobs]
+      summary: Save a job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_id]
+              properties:
+                job_id:
+                  type: string
+                  format: uuid
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: Job saved successfully
+
+  /job-alerts:
+    get:
+      tags: [Job Alerts]
+      summary: List job alerts
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Job alerts retrieved successfully
+    post:
+      tags: [Job Alerts]
+      summary: Create job alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobAlertCreate'
+      responses:
+        '201':
+          description: Job alert created successfully
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase JWT token from authentication
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    ProfileId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CompanyId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    JobId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ResumeId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SkillId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WorkExperienceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    # Enums
+    CompanySize:
+      type: string
+      enum: [STARTUP, SMALL, MEDIUM, LARGE, ENTERPRISE]
+    JobType:
+      type: string
+      enum: [FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP, FREELANCE]
+    ExperienceLevel:
+      type: string
+      enum: [ENTRY, MID, SENIOR, EXECUTIVE]
+    SkillCategory:
+      type: string
+      enum: [TECHNICAL, SOFT, LANGUAGE, TOOL]
+    SkillLevel:
+      type: string
+      enum: [BEGINNER, INTERMEDIATE, ADVANCED, EXPERT]
+    ApplicationStatus:
+      type: string
+      enum: [DRAFT, SUBMITTED, UNDER_REVIEW, INTERVIEW, OFFER, REJECTED, ACCEPTED]
+
+    # Base Models
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone_number:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProfileWithRelations:
+      allOf:
+        - $ref: '#/components/schemas/Profile'
+        - type: object
+          properties:
+            work_experiences:
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkExperience'
+            educations:
+              type: array
+              items:
+                $ref: '#/components/schemas/Education'
+            skills:
+              type: array
+              items:
+                $ref: '#/components/schemas/Skill'
+            certifications:
+              type: array
+              items:
+                $ref: '#/components/schemas/Certification'
+            projects:
+              type: array
+              items:
+                $ref: '#/components/schemas/Project'
+            languages:
+              type: array
+              items:
+                $ref: '#/components/schemas/Language'
+
+    ProfileUpdate:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone_number:
+          type: string
+
+    Company:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        website:
+          type: string
+        logo_url:
+          type: string
+        industry:
+          type: string
+        size:
+          $ref: '#/components/schemas/CompanySize'
+        location:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CompanyWithJobs:
+      allOf:
+        - $ref: '#/components/schemas/Company'
+        - type: object
+          properties:
+            jobs:
+              type: array
+              items:
+                $ref: '#/components/schemas/Job'
+
+    CompanyCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        website:
+          type: string
+        logo_url:
+          type: string
+        industry:
+          type: string
+        size:
+          $ref: '#/components/schemas/CompanySize'
+        location:
+          type: string
+
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        company_id:
+          type: string
+          format: uuid
+        location:
+          type: string
+        is_remote:
+          type: boolean
+        job_type:
+          $ref: '#/components/schemas/JobType'
+        experience_level:
+          $ref: '#/components/schemas/ExperienceLevel'
+        description:
+          type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        benefits:
+          type: array
+          items:
+            type: string
+        salary_min:
+          type: number
+        salary_max:
+          type: number
+        salary_currency:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        posted_at:
+          type: string
+          format: date-time
+        application_deadline:
+          type: string
+          format: date-time
+        is_active:
+          type: boolean
+
+    JobWithCompany:
+      allOf:
+        - $ref: '#/components/schemas/Job'
+        - type: object
+          properties:
+            companies:
+              $ref: '#/components/schemas/Company'
+
+    Resume:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        summary:
+          type: string
+        is_primary:
+          type: boolean
+        file_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ResumeWithRelations:
+      allOf:
+        - $ref: '#/components/schemas/Resume'
+        - type: object
+          properties:
+            work_experiences:
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkExperience'
+            educations:
+              type: array
+              items:
+                $ref: '#/components/schemas/Education'
+            skills:
+              type: array
+              items:
+                $ref: '#/components/schemas/Skill'
+            certifications:
+              type: array
+              items:
+                $ref: '#/components/schemas/Certification'
+            projects:
+              type: array
+              items:
+                $ref: '#/components/schemas/Project'
+            languages:
+              type: array
+              items:
+                $ref: '#/components/schemas/Language'
+
+    ResumeCreate:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        is_primary:
+          type: boolean
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkillCreate'
+          description: Optional array of skills to create with the resume
+        work_experiences:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkExperienceCreate'
+          description: Optional array of work experiences to create with the resume
+        educations:
+          type: array
+          items:
+            $ref: '#/components/schemas/EducationCreate'
+          description: Optional array of educations to create with the resume
+        certifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/CertificationCreate'
+          description: Optional array of certifications to create with the resume
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectCreate'
+          description: Optional array of projects to create with the resume
+        languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/LanguageCreate'
+          description: Optional array of languages to create with the resume
+
+    Skill:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resume_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        level:
+          $ref: '#/components/schemas/SkillLevel'
+        category:
+          $ref: '#/components/schemas/SkillCategory'
+        created_at:
+          type: string
+          format: date-time
+
+    SkillCreate:
+      type: object
+      required: [resume_id, name]
+      properties:
+        resume_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        level:
+          $ref: '#/components/schemas/SkillLevel'
+        category:
+          $ref: '#/components/schemas/SkillCategory'
+
+    SkillUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        level:
+          $ref: '#/components/schemas/SkillLevel'
+        category:
+          $ref: '#/components/schemas/SkillCategory'
+
+    WorkExperience:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resume_id:
+          type: string
+          format: uuid
+        company:
+          type: string
+        position:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        is_current_role:
+          type: boolean
+        location:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+
+    WorkExperienceCreate:
+      type: object
+      required: [resume_id, company, position, description, start_date]
+      properties:
+        resume_id:
+          type: string
+          format: uuid
+        company:
+          type: string
+        position:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        is_current_role:
+          type: boolean
+        location:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+
+    WorkExperienceUpdate:
+      type: object
+      properties:
+        company:
+          type: string
+        position:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        is_current_role:
+          type: boolean
+        location:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+
+    Education:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resume_id:
+          type: string
+          format: uuid
+        institution:
+          type: string
+        degree:
+          type: string
+        field_of_study:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        grade:
+          type: string
+        description:
+          type: string
+
+    EducationCreate:
+      type: object
+      required: [resume_id, institution, degree, field_of_study, start_date]
+      properties:
+        resume_id:
+          type: string
+          format: uuid
+        institution:
+          type: string
+        degree:
+          type: string
+        field_of_study:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        grade:
+          type: string
+        description:
+          type: string
+
+    Certification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resume_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        issuer:
+          type: string
+        issue_date:
+          type: string
+          format: date
+        expiry_date:
+          type: string
+          format: date
+        credential_id:
+          type: string
+        credential_url:
+          type: string
+
+    CertificationCreate:
+      type: object
+      required: [resume_id, name, issuer, issue_date]
+      properties:
+        resume_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        issuer:
+          type: string
+        issue_date:
+          type: string
+          format: date
+        expiry_date:
+          type: string
+          format: date
+        credential_id:
+          type: string
+        credential_url:
+          type: string
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resume_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        technologies:
+          type: array
+          items:
+            type: string
+        project_url:
+          type: string
+        github_url:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+
+    ProjectCreate:
+      type: object
+      required: [resume_id, title, description, start_date]
+      properties:
+        resume_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        technologies:
+          type: array
+          items:
+            type: string
+        project_url:
+          type: string
+        github_url:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+
+    Language:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resume_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        proficiency:
+          type: string
+          enum: [BASIC, CONVERSATIONAL, FLUENT, NATIVE]
+
+    LanguageCreate:
+      type: object
+      required: [resume_id, name, proficiency]
+      properties:
+        resume_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        proficiency:
+          type: string
+          enum: [BASIC, CONVERSATIONAL, FLUENT, NATIVE]
+
+    JobApplication:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        job_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        resume_id:
+          type: string
+          format: uuid
+        cover_letter:
+          type: string
+        status:
+          $ref: '#/components/schemas/ApplicationStatus'
+        applied_at:
+          type: string
+          format: date-time
+        notes:
+          type: string
+
+    JobApplicationCreate:
+      type: object
+      required: [job_id, user_id]
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        resume_id:
+          type: string
+          format: uuid
+        cover_letter:
+          type: string
+
+    JobAlertCreate:
+      type: object
+      required: [name, criteria]
+      properties:
+        name:
+          type: string
+        criteria:
+          type: object
+          description: JSON object containing alert criteria
+        frequency:
+          type: string
+          enum: [DAILY, WEEKLY, MONTHLY]
+        is_active:
+          type: boolean
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalCount:
+          type: integer
+        totalPages:
+          type: integer
+        hasNextPage:
+          type: boolean
+        hasPrevPage:
+          type: boolean
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Unauthorized
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Resource not found
+    BadRequest:
+      description: Bad request - Invalid input
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
