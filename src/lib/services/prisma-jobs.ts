@@ -7,7 +7,7 @@ import type {
   JobWithCompany, 
   JobSearchFilters,
   DrizzlePaginatedResponse 
-} from '@/types/drizzle'
+} from '@/types/prisma'
 
 // Define update type locally
 type UpdateJob = Prisma.JobUpdateInput
