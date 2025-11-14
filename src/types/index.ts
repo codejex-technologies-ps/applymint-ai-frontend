@@ -17,7 +17,7 @@ export interface UserProfile {
   first_name: string | null;
   last_name: string | null;
   phone_number: string | null;
-  
+
   // Extended profile fields
   bio: string | null;
   location: string | null;
@@ -29,10 +29,18 @@ export interface UserProfile {
   current_position: string | null;
   company: string | null;
   years_of_experience: number | null;
-  availability_status: 'available' | 'not_available' | 'open_to_opportunities';
-  preferred_work_type: 'full_time' | 'part_time' | 'contract' | 'freelance' | 'internship';
-  profile_visibility: 'public' | 'private' | 'connections_only';
-  
+  availability_status: "available" | "not_available" | "open_to_opportunities";
+  preferred_work_type:
+    | "full_time"
+    | "part_time"
+    | "contract"
+    | "freelance"
+    | "internship";
+  profile_visibility: "public" | "private" | "connections_only";
+
+  // Credit system
+  credit: number;
+
   created_at: string;
   updated_at: string;
 }
@@ -44,7 +52,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   phoneNumber?: string;
-  
+
   // Extended profile fields
   bio?: string;
   location?: string;
@@ -56,10 +64,18 @@ export interface User {
   currentPosition?: string;
   company?: string;
   yearsOfExperience?: number;
-  availabilityStatus?: 'available' | 'not_available' | 'open_to_opportunities';
-  preferredWorkType?: 'full_time' | 'part_time' | 'contract' | 'freelance' | 'internship';
-  profileVisibility?: 'public' | 'private' | 'connections_only';
-  
+  availabilityStatus?: "available" | "not_available" | "open_to_opportunities";
+  preferredWorkType?:
+    | "full_time"
+    | "part_time"
+    | "contract"
+    | "freelance"
+    | "internship";
+  profileVisibility?: "public" | "private" | "connections_only";
+
+  // Credit system
+  credit?: number;
+
   isEmailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -242,15 +258,15 @@ export interface JobApplication {
 // API Response types
 export type ApiResponse<T> =
   | {
-      success: true;
-      data: T;
-      message?: string;
-    }
+    success: true;
+    data: T;
+    message?: string;
+  }
   | {
-      success: false;
-      error: string;
-      code?: string;
-    };
+    success: false;
+    error: string;
+    code?: string;
+  };
 
 export interface PaginatedResponse<T> {
   items: T[];
@@ -352,4 +368,96 @@ export interface FormState<T> {
   isLoading: boolean;
   errors: Record<keyof T, string>;
   isValid: boolean;
+}
+
+// Credit System Types
+export type TransactionType = "purchase" | "usage" | "refund" | "bonus";
+export type FeatureType =
+  | "resume_optimization"
+  | "interview_scheduling"
+  | "ai_matching";
+export type SubscriptionStatus =
+  | "active"
+  | "canceled"
+  | "past_due"
+  | "incomplete"
+  | "incomplete_expired"
+  | "trialing"
+  | "unpaid";
+export type PackageType = "one_time" | "subscription";
+export type BillingInterval = "monthly" | "yearly";
+
+export interface CreditPackage {
+  id: string;
+  name: string;
+  description?: string;
+  credits: number;
+  price: number;
+  currency: string;
+  packageType: PackageType;
+  billingInterval?: BillingInterval;
+  stripePriceId?: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreditTransaction {
+  id: string;
+  userId: string;
+  transactionType: TransactionType;
+  amount: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  creditPackageId?: string;
+  stripePaymentIntentId?: string;
+  price?: number;
+  featureType?: FeatureType;
+  featureId?: string;
+  description: string;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+}
+
+export interface FeatureCreditCost {
+  id: string;
+  featureType: FeatureType;
+  featureName: string;
+  creditCost: number;
+  description?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UserSubscription {
+  id: string;
+  userId: string;
+  creditPackageId: string;
+  stripeSubscriptionId: string;
+  status: SubscriptionStatus;
+  currentPeriodStart: Date;
+  currentPeriodEnd: Date;
+  cancelAtPeriodEnd: boolean;
+  canceledAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Credit system API types
+export interface CreditBalance {
+  currentCredits: number;
+  transactions: CreditTransaction[];
+}
+
+export interface PurchaseCreditsRequest {
+  packageId: string;
+  paymentMethodId: string;
+}
+
+export interface UseCreditsRequest {
+  featureType: FeatureType;
+  featureId?: string;
+  description: string;
 }
