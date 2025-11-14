@@ -1,52 +1,53 @@
-// Hybrid profiles service demonstrating gradual migration from Supabase to Drizzle
+// Hybrid profiles service demonstrating gradual migration from Drizzle to Prisma
 // This shows how to migrate services incrementally while maintaining compatibility
+// UPDATED: Now uses Prisma ORM instead of Drizzle ORM
 
 import { createClient } from '@/lib/supabase/client';
-import { drizzleProfilesService } from './drizzle-profiles';
+import { prismaProfilesService } from './prisma-profiles';
 import type { UserProfile, User } from '@/types';
 
-// Feature flag to control which backend to use
-const USE_DRIZZLE = process.env.NEXT_PUBLIC_USE_DRIZZLE === 'true';
+// Feature flag to control which backend to use (now defaults to Prisma)
+const USE_PRISMA = process.env.NEXT_PUBLIC_USE_PRISMA !== 'false';
 
 export const hybridProfilesService = {
-  // Get current user's profile - demonstrates gradual migration
+  // Get current user's profile - now uses Prisma by default
   async getCurrentProfile(): Promise<UserProfile | null> {
-    if (USE_DRIZZLE) {
-      // New Drizzle implementation
+    if (USE_PRISMA) {
+      // New Prisma implementation
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) return null;
       
-      const drizzleProfile = await drizzleProfilesService.getProfileById(user.id);
-      if (!drizzleProfile) return null;
+      const prismaProfile = await prismaProfilesService.getProfileById(user.id);
+      if (!prismaProfile) return null;
       
-      // Convert Drizzle format to Supabase format for compatibility
+      // Convert Prisma format to Supabase format for compatibility
       return {
-        id: drizzleProfile.id,
-        email: drizzleProfile.email,
-        first_name: drizzleProfile.firstName,
-        last_name: drizzleProfile.lastName,
-        phone_number: drizzleProfile.phoneNumber,
-        bio: drizzleProfile.bio,
-        location: drizzleProfile.location,
-        website: drizzleProfile.website,
-        linkedin_url: drizzleProfile.linkedinUrl,
-        github_url: drizzleProfile.githubUrl,
-        twitter_url: drizzleProfile.twitterUrl,
-        portfolio_url: drizzleProfile.portfolioUrl,
-        current_position: drizzleProfile.currentPosition,
-        company: drizzleProfile.company,
-        years_of_experience: drizzleProfile.yearsOfExperience,
-        availability_status: drizzleProfile.availabilityStatus || 'available',
-        preferred_work_type: drizzleProfile.preferredWorkType || 'full_time',
-        profile_visibility: drizzleProfile.profileVisibility || 'public',
-        credit: drizzleProfile.credit || 5,
-        created_at: drizzleProfile.createdAt.toISOString(),
-        updated_at: drizzleProfile.updatedAt.toISOString(),
+        id: prismaProfile.id,
+        email: prismaProfile.email,
+        first_name: prismaProfile.firstName,
+        last_name: prismaProfile.lastName,
+        phone_number: prismaProfile.phoneNumber,
+        bio: prismaProfile.bio,
+        location: prismaProfile.location,
+        website: prismaProfile.website,
+        linkedin_url: prismaProfile.linkedinUrl,
+        github_url: prismaProfile.githubUrl,
+        twitter_url: prismaProfile.twitterUrl,
+        portfolio_url: prismaProfile.portfolioUrl,
+        current_position: prismaProfile.currentPosition,
+        company: prismaProfile.company,
+        years_of_experience: prismaProfile.yearsOfExperience,
+        availability_status: (prismaProfile.availabilityStatus || 'available') as UserProfile['availability_status'],
+        preferred_work_type: (prismaProfile.preferredWorkType || 'full_time') as UserProfile['preferred_work_type'],
+        profile_visibility: (prismaProfile.profileVisibility || 'public') as UserProfile['profile_visibility'],
+        credit: prismaProfile.credit || 5,
+        created_at: prismaProfile.createdAt.toISOString(),
+        updated_at: prismaProfile.updatedAt.toISOString(),
       };
     } else {
-      // Original Supabase implementation
+      // Fallback to Supabase implementation
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -67,16 +68,16 @@ export const hybridProfilesService = {
     }
   },
 
-  // Update profile - shows how to maintain same interface
+  // Update profile - now uses Prisma by default
   async updateProfile(updates: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>): Promise<UserProfile | null> {
-    if (USE_DRIZZLE) {
-      // New Drizzle implementation with better type safety
+    if (USE_PRISMA) {
+      // New Prisma implementation with better type safety
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) throw new Error('Not authenticated');
 
-      const drizzleProfile = await drizzleProfilesService.updateProfile(user.id, {
+      const prismaProfile = await prismaProfilesService.updateProfile(user.id, {
         firstName: updates.first_name || undefined,
         lastName: updates.last_name || undefined,
         phoneNumber: updates.phone_number || undefined,
@@ -96,34 +97,34 @@ export const hybridProfilesService = {
         profileVisibility: updates.profile_visibility || undefined,
       });
       
-      if (!drizzleProfile) return null;
+      if (!prismaProfile) return null;
       
       // Convert back to Supabase format
       return {
-        id: drizzleProfile.id,
-        email: drizzleProfile.email,
-        first_name: drizzleProfile.firstName,
-        last_name: drizzleProfile.lastName,
-        phone_number: drizzleProfile.phoneNumber,
-        bio: drizzleProfile.bio,
-        location: drizzleProfile.location,
-        website: drizzleProfile.website,
-        linkedin_url: drizzleProfile.linkedinUrl,
-        github_url: drizzleProfile.githubUrl,
-        twitter_url: drizzleProfile.twitterUrl,
-        portfolio_url: drizzleProfile.portfolioUrl,
-        current_position: drizzleProfile.currentPosition,
-        company: drizzleProfile.company,
-        years_of_experience: drizzleProfile.yearsOfExperience,
-        availability_status: drizzleProfile.availabilityStatus || 'available',
-        preferred_work_type: drizzleProfile.preferredWorkType || 'full_time',
-        profile_visibility: drizzleProfile.profileVisibility || 'public',
-        credit: drizzleProfile.credit || 5,
-        created_at: drizzleProfile.createdAt.toISOString(),
-        updated_at: drizzleProfile.updatedAt.toISOString(),
+        id: prismaProfile.id,
+        email: prismaProfile.email,
+        first_name: prismaProfile.firstName,
+        last_name: prismaProfile.lastName,
+        phone_number: prismaProfile.phoneNumber,
+        bio: prismaProfile.bio,
+        location: prismaProfile.location,
+        website: prismaProfile.website,
+        linkedin_url: prismaProfile.linkedinUrl,
+        github_url: prismaProfile.githubUrl,
+        twitter_url: prismaProfile.twitterUrl,
+        portfolio_url: prismaProfile.portfolioUrl,
+        current_position: prismaProfile.currentPosition,
+        company: prismaProfile.company,
+        years_of_experience: prismaProfile.yearsOfExperience,
+        availability_status: (prismaProfile.availabilityStatus || 'available') as UserProfile['availability_status'],
+        preferred_work_type: (prismaProfile.preferredWorkType || 'full_time') as UserProfile['preferred_work_type'],
+        profile_visibility: (prismaProfile.profileVisibility || 'public') as UserProfile['profile_visibility'],
+        credit: prismaProfile.credit || 5,
+        created_at: prismaProfile.createdAt.toISOString(),
+        updated_at: prismaProfile.updatedAt.toISOString(),
       };
     } else {
-      // Original Supabase implementation
+      // Fallback to Supabase implementation
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -145,45 +146,45 @@ export const hybridProfilesService = {
     }
   },
 
-  // Get profile by ID - demonstrates performance comparison
+  // Get profile by ID - now uses Prisma by default
   async getProfileById(id: string): Promise<UserProfile | null> {
     const startTime = performance.now();
     
     let result: UserProfile | null;
     
-    if (USE_DRIZZLE) {
-      // Drizzle with connection pooling
-      const drizzleProfile = await drizzleProfilesService.getProfileById(id);
-      if (!drizzleProfile) {
+    if (USE_PRISMA) {
+      // Prisma with connection pooling
+      const prismaProfile = await prismaProfilesService.getProfileById(id);
+      if (!prismaProfile) {
         result = null;
       } else {
         // Convert to Supabase format
         result = {
-          id: drizzleProfile.id,
-          email: drizzleProfile.email,
-          first_name: drizzleProfile.firstName,
-          last_name: drizzleProfile.lastName,
-          phone_number: drizzleProfile.phoneNumber,
-          bio: drizzleProfile.bio,
-          location: drizzleProfile.location,
-          website: drizzleProfile.website,
-          linkedin_url: drizzleProfile.linkedinUrl,
-          github_url: drizzleProfile.githubUrl,
-          twitter_url: drizzleProfile.twitterUrl,
-          portfolio_url: drizzleProfile.portfolioUrl,
-          current_position: drizzleProfile.currentPosition,
-          company: drizzleProfile.company,
-          years_of_experience: drizzleProfile.yearsOfExperience,
-          availability_status: drizzleProfile.availabilityStatus || 'available',
-          preferred_work_type: drizzleProfile.preferredWorkType || 'full_time',
-          profile_visibility: drizzleProfile.profileVisibility || 'public',
-          credit: drizzleProfile.credit || 5,
-          created_at: drizzleProfile.createdAt.toISOString(),
-          updated_at: drizzleProfile.updatedAt.toISOString(),
+          id: prismaProfile.id,
+          email: prismaProfile.email,
+          first_name: prismaProfile.firstName,
+          last_name: prismaProfile.lastName,
+          phone_number: prismaProfile.phoneNumber,
+          bio: prismaProfile.bio,
+          location: prismaProfile.location,
+          website: prismaProfile.website,
+          linkedin_url: prismaProfile.linkedinUrl,
+          github_url: prismaProfile.githubUrl,
+          twitter_url: prismaProfile.twitterUrl,
+          portfolio_url: prismaProfile.portfolioUrl,
+          current_position: prismaProfile.currentPosition,
+          company: prismaProfile.company,
+          years_of_experience: prismaProfile.yearsOfExperience,
+          availability_status: (prismaProfile.availabilityStatus || 'available') as UserProfile['availability_status'],
+          preferred_work_type: (prismaProfile.preferredWorkType || 'full_time') as UserProfile['preferred_work_type'],
+          profile_visibility: (prismaProfile.profileVisibility || 'public') as UserProfile['profile_visibility'],
+          credit: prismaProfile.credit || 5,
+          created_at: prismaProfile.createdAt.toISOString(),
+          updated_at: prismaProfile.updatedAt.toISOString(),
         };
       }
     } else {
-      // Original Supabase
+      // Fallback to Supabase
       const supabase = createClient();
       
       const { data, error } = await supabase
@@ -201,7 +202,7 @@ export const hybridProfilesService = {
     }
     
     const endTime = performance.now();
-    console.log(`Profile fetch took ${endTime - startTime}ms using ${USE_DRIZZLE ? 'Drizzle' : 'Supabase'}`);
+    console.log(`Profile fetch took ${endTime - startTime}ms using ${USE_PRISMA ? 'Prisma' : 'Supabase'}`);
     
     return result;
   },
@@ -224,7 +225,7 @@ export const hybridProfilesService = {
   // Performance comparison utility
   async performanceTest(userId: string): Promise<{
     supabaseTime: number;
-    drizzleTime: number;
+    prismaTime: number;
     improvement: string;
   }> {
     console.log('Running performance comparison...');
@@ -236,19 +237,19 @@ export const hybridProfilesService = {
     const supabaseEnd = performance.now();
     const supabaseTime = supabaseEnd - supabaseStart;
     
-    // Test Drizzle
-    const drizzleStart = performance.now();
-    await drizzleProfilesService.getProfileById(userId);
-    const drizzleEnd = performance.now();
-    const drizzleTime = drizzleEnd - drizzleStart;
+    // Test Prisma
+    const prismaStart = performance.now();
+    await prismaProfilesService.getProfileById(userId);
+    const prismaEnd = performance.now();
+    const prismaTime = prismaEnd - prismaStart;
     
-    const improvement = supabaseTime > drizzleTime 
-      ? `${((supabaseTime - drizzleTime) / supabaseTime * 100).toFixed(1)}% faster`
-      : `${((drizzleTime - supabaseTime) / drizzleTime * 100).toFixed(1)}% slower`;
+    const improvement = supabaseTime > prismaTime 
+      ? `${((supabaseTime - prismaTime) / supabaseTime * 100).toFixed(1)}% faster`
+      : `${((prismaTime - supabaseTime) / supabaseTime * 100).toFixed(1)}% slower`;
     
     return {
       supabaseTime: Math.round(supabaseTime * 100) / 100,
-      drizzleTime: Math.round(drizzleTime * 100) / 100,
+      prismaTime: Math.round(prismaTime * 100) / 100,
       improvement,
     };
   },
@@ -267,9 +268,9 @@ export const hybridProfilesService = {
         .eq('id', userId)
         .single();
       
-      const drizzleData = await drizzleProfilesService.getProfileById(userId);
+      const prismaData = await prismaProfilesService.getProfileById(userId);
       
-      if (!supabaseData || !drizzleData) {
+      if (!supabaseData || !prismaData) {
         return {
           consistent: false,
           differences: ['Data not found in one or both sources'],
@@ -279,20 +280,20 @@ export const hybridProfilesService = {
       // Compare key fields
       const differences: string[] = [];
       
-      if (supabaseData.email !== drizzleData.email) {
-        differences.push(`Email mismatch: ${supabaseData.email} vs ${drizzleData.email}`);
+      if (supabaseData.email !== prismaData.email) {
+        differences.push(`Email mismatch: ${supabaseData.email} vs ${prismaData.email}`);
       }
       
-      if (supabaseData.first_name !== drizzleData.firstName) {
-        differences.push(`First name mismatch: ${supabaseData.first_name} vs ${drizzleData.firstName}`);
+      if (supabaseData.first_name !== prismaData.firstName) {
+        differences.push(`First name mismatch: ${supabaseData.first_name} vs ${prismaData.firstName}`);
       }
       
-      if (supabaseData.last_name !== drizzleData.lastName) {
-        differences.push(`Last name mismatch: ${supabaseData.last_name} vs ${drizzleData.lastName}`);
+      if (supabaseData.last_name !== prismaData.lastName) {
+        differences.push(`Last name mismatch: ${supabaseData.last_name} vs ${prismaData.lastName}`);
       }
       
-      if (supabaseData.phone_number !== drizzleData.phoneNumber) {
-        differences.push(`Phone mismatch: ${supabaseData.phone_number} vs ${drizzleData.phoneNumber}`);
+      if (supabaseData.phone_number !== prismaData.phoneNumber) {
+        differences.push(`Phone mismatch: ${supabaseData.phone_number} vs ${prismaData.phoneNumber}`);
       }
       
       return {
