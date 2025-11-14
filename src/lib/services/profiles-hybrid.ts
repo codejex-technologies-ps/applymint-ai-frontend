@@ -41,6 +41,7 @@ export const hybridProfilesService = {
         availability_status: drizzleProfile.availabilityStatus || 'available',
         preferred_work_type: drizzleProfile.preferredWorkType || 'full_time',
         profile_visibility: drizzleProfile.profileVisibility || 'public',
+        credit: drizzleProfile.credit || 5,
         created_at: drizzleProfile.createdAt.toISOString(),
         updated_at: drizzleProfile.updatedAt.toISOString(),
       };
@@ -117,6 +118,7 @@ export const hybridProfilesService = {
         availability_status: drizzleProfile.availabilityStatus || 'available',
         preferred_work_type: drizzleProfile.preferredWorkType || 'full_time',
         profile_visibility: drizzleProfile.profileVisibility || 'public',
+        credit: drizzleProfile.credit || 5,
         created_at: drizzleProfile.createdAt.toISOString(),
         updated_at: drizzleProfile.updatedAt.toISOString(),
       };
@@ -175,6 +177,7 @@ export const hybridProfilesService = {
           availability_status: drizzleProfile.availabilityStatus || 'available',
           preferred_work_type: drizzleProfile.preferredWorkType || 'full_time',
           profile_visibility: drizzleProfile.profileVisibility || 'public',
+          credit: drizzleProfile.credit || 5,
           created_at: drizzleProfile.createdAt.toISOString(),
           updated_at: drizzleProfile.updatedAt.toISOString(),
         };
