@@ -20,6 +20,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Brain,
+  Mic,
+  MessageSquare,
 } from 'lucide-react'
 
 export interface SidebarItem {
@@ -88,6 +91,33 @@ const sidebarItems: SidebarItem[] = [
     label: 'Interviews',
     href: '/dashboard/interviews',
     icon: Calendar,
+  },
+  {
+    id: 'interview-simulator',
+    label: 'AI Interview',
+    href: '/interview',
+    icon: Brain,
+    badge: 'AI',
+    children: [
+      {
+        id: 'interview-start',
+        label: 'Start Interview',
+        href: '/interview',
+        icon: Sparkles,
+      },
+      {
+        id: 'interview-text',
+        label: 'Text Practice',
+        href: '/interview?mode=text',
+        icon: MessageSquare,
+      },
+      {
+        id: 'interview-voice',
+        label: 'Voice Practice',
+        href: '/interview?mode=voice',
+        icon: Mic,
+      },
+    ],
   },
   {
     id: 'interview-prep',
