@@ -6,7 +6,7 @@ import type { Job, Company, Prisma } from '@prisma/client'
 import type { 
   JobWithCompany, 
   JobSearchFilters,
-  DrizzlePaginatedResponse 
+  PaginatedResponse 
 } from '@/types/prisma'
 
 // Define update type locally
@@ -29,8 +29,8 @@ export const prismaJobsService = {
       return {
         ...job,
         company: job.company || undefined,
-        salaryMin: job.salaryMin?.toString() || null,
-        salaryMax: job.salaryMax?.toString() || null,
+        salaryMin: job.salaryMin ? job.salaryMin.toString() : null,
+        salaryMax: job.salaryMax ? job.salaryMax.toString() : null,
       } as JobWithCompany
     } catch (error) {
       console.error('Error fetching job by ID:', error)
@@ -43,7 +43,7 @@ export const prismaJobsService = {
     filters: JobSearchFilters = {},
     page = 1,
     pageSize = 20
-  ): Promise<DrizzlePaginatedResponse<JobWithCompany>> {
+  ): Promise<PaginatedResponse<JobWithCompany>> {
     try {
       const skip = (page - 1) * pageSize
 
@@ -104,8 +104,8 @@ export const prismaJobsService = {
       const data = jobs.map(job => ({
         ...job,
         company: job.company || undefined,
-        salaryMin: job.salaryMin?.toString() || null,
-        salaryMax: job.salaryMax?.toString() || null,
+        salaryMin: job.salaryMin ? job.salaryMin.toString() : null,
+        salaryMax: job.salaryMax ? job.salaryMax.toString() : null,
       })) as JobWithCompany[]
 
       const totalPages = Math.ceil(totalCount / pageSize)
@@ -219,8 +219,8 @@ export const prismaJobsService = {
       return applications.map(app => ({
         ...app.job,
         company: app.job.company || undefined,
-        salaryMin: app.job.salaryMin?.toString() || null,
-        salaryMax: app.job.salaryMax?.toString() || null,
+        salaryMin: app.job.salaryMin ? app.job.salaryMin.toString() : null,
+        salaryMax: app.job.salaryMax ? app.job.salaryMax.toString() : null,
       })) as JobWithCompany[]
     } catch (error) {
       console.error('Error fetching user applied jobs:', error)
@@ -246,8 +246,8 @@ export const prismaJobsService = {
       return savedJobs.map(saved => ({
         ...saved.job,
         company: saved.job.company || undefined,
-        salaryMin: saved.job.salaryMin?.toString() || null,
-        salaryMax: saved.job.salaryMax?.toString() || null,
+        salaryMin: saved.job.salaryMin ? saved.job.salaryMin.toString() : null,
+        salaryMax: saved.job.salaryMax ? saved.job.salaryMax.toString() : null,
       })) as JobWithCompany[]
     } catch (error) {
       console.error('Error fetching user saved jobs:', error)
@@ -292,8 +292,8 @@ export const prismaJobsService = {
       return jobs.map(job => ({
         ...job,
         company: job.company || undefined,
-        salaryMin: job.salaryMin?.toString() || null,
-        salaryMax: job.salaryMax?.toString() || null,
+        salaryMin: job.salaryMin ? job.salaryMin.toString() : null,
+        salaryMax: job.salaryMax ? job.salaryMax.toString() : null,
       })) as JobWithCompany[]
     } catch (error) {
       console.error('Error fetching similar jobs:', error)

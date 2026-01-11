@@ -52,7 +52,7 @@ export interface InterviewSessionWithDetails extends InterviewSession {
 }
 
 // Utility types for API responses
-export interface DrizzlePaginatedResponse<T> {
+export interface PaginatedResponse<T> {
   data: T[];
   pagination: {
     page: number;
