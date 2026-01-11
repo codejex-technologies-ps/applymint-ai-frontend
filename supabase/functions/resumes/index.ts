@@ -272,6 +272,22 @@ async function createResume(supabaseClient: any, req: Request) {
       })
     }
 
+    // Extract nested data
+    const skills = resumeData.skills || []
+    const workExperiences = resumeData.work_experiences || []
+    const educations = resumeData.educations || []
+    const certifications = resumeData.certifications || []
+    const projects = resumeData.projects || []
+    const languages = resumeData.languages || []
+
+    // Remove nested data from main resume object
+    delete resumeData.skills
+    delete resumeData.work_experiences
+    delete resumeData.educations
+    delete resumeData.certifications
+    delete resumeData.projects
+    delete resumeData.languages
+
     // If this is set as primary, unset other primary resumes
     if (resumeData.is_primary) {
       await supabaseClient
@@ -280,6 +296,7 @@ async function createResume(supabaseClient: any, req: Request) {
         .eq('user_id', user.id)
     }
 
+    // Create the resume first
     const { data: resume, error } = await supabaseClient
       .from('resumes')
       .insert([{
@@ -300,7 +317,85 @@ async function createResume(supabaseClient: any, req: Request) {
 
     if (error) throw error
 
-    return new Response(JSON.stringify({ resume }), {
+    // Create nested data if provided
+    const resumeId = resume.id
+
+    // Insert skills
+    if (skills.length > 0) {
+      const skillsToInsert = skills.map((skill: any) => ({
+        ...skill,
+        resume_id: resumeId
+      }))
+      await supabaseClient.from('skills').insert(skillsToInsert)
+    }
+
+    // Insert work experiences
+    if (workExperiences.length > 0) {
+      const workExpToInsert = workExperiences.map((exp: any) => ({
+        ...exp,
+        resume_id: resumeId
+      }))
+      await supabaseClient.from('work_experiences').insert(workExpToInsert)
+    }
+
+    // Insert educations
+    if (educations.length > 0) {
+      const educationsToInsert = educations.map((edu: any) => ({
+        ...edu,
+        resume_id: resumeId
+      }))
+      await supabaseClient.from('educations').insert(educationsToInsert)
+    }
+
+    // Insert certifications
+    if (certifications.length > 0) {
+      const certificationsToInsert = certifications.map((cert: any) => ({
+        ...cert,
+        resume_id: resumeId
+      }))
+      await supabaseClient.from('certifications').insert(certificationsToInsert)
+    }
+
+    // Insert projects
+    if (projects.length > 0) {
+      const projectsToInsert = projects.map((proj: any) => ({
+        ...proj,
+        resume_id: resumeId
+      }))
+      await supabaseClient.from('projects').insert(projectsToInsert)
+    }
+
+    // Insert languages
+    if (languages.length > 0) {
+      const languagesToInsert = languages.map((lang: any) => ({
+        ...lang,
+        resume_id: resumeId
+      }))
+      await supabaseClient.from('languages').insert(languagesToInsert)
+    }
+
+    // Fetch the complete resume with all nested data
+    const { data: completeResume } = await supabaseClient
+      .from('resumes')
+      .select(`
+        *,
+        profiles (
+          id,
+          first_name,
+          last_name,
+          email
+        ),
+        work_experiences (*),
+        educations (*),
+        skills (*),
+        certifications (*),
+        projects (*),
+        languages (*)
+      `)
+      .eq('id', resumeId)
+      .single()
+
+    return new Response(JSON.stringify({ resume: completeResume }), {
       status: 201,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
