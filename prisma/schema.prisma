@@ -17,23 +17,23 @@ datasource db {
 // ==========================================
 
 model Profile {
-  id        String   @id @db.Uuid
-  email     String   @unique
-  firstName String?  @map("first_name")
-  lastName  String?  @map("last_name")
+  id          String  @id @db.Uuid
+  email       String  @unique
+  firstName   String? @map("first_name")
+  lastName    String? @map("last_name")
   phoneNumber String? @map("phone_number")
 
   // Extended profile fields
-  bio               String?  
-  location          String?
-  website           String?
-  linkedinUrl       String?  @map("linkedin_url")
-  githubUrl         String?  @map("github_url")
-  twitterUrl        String?  @map("twitter_url")
-  portfolioUrl      String?  @map("portfolio_url")
-  currentPosition   String?  @map("current_position")
-  company           String?
-  yearsOfExperience Int?     @map("years_of_experience")
+  bio                String?
+  location           String?
+  website            String?
+  linkedinUrl        String? @map("linkedin_url")
+  githubUrl          String? @map("github_url")
+  twitterUrl         String? @map("twitter_url")
+  portfolioUrl       String? @map("portfolio_url")
+  currentPosition    String? @map("current_position")
+  company            String?
+  yearsOfExperience  Int?    @map("years_of_experience")
   availabilityStatus String? @default("available") @map("availability_status")
   preferredWorkType  String? @default("full_time") @map("preferred_work_type")
   profileVisibility  String? @default("public") @map("profile_visibility")
@@ -60,30 +60,30 @@ model Profile {
 }
 
 model UserPreference {
-  id     String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId String  @unique @map("user_id") @db.Uuid
-  
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @unique @map("user_id") @db.Uuid
+
   // Job alert preferences
-  jobAlertEnabled       Boolean @default(true) @map("job_alert_enabled")
-  jobAlertFrequency     String  @default("daily") @map("job_alert_frequency")
-  emailNotifications    Boolean @default(true) @map("email_notifications")
-  smsNotifications      Boolean @default(false) @map("sms_notifications")
-  
+  jobAlertEnabled    Boolean @default(true) @map("job_alert_enabled")
+  jobAlertFrequency  String  @default("daily") @map("job_alert_frequency")
+  emailNotifications Boolean @default(true) @map("email_notifications")
+  smsNotifications   Boolean @default(false) @map("sms_notifications")
+
   // Job preferences
-  preferredJobTypes     String[] @map("preferred_job_types")
-  preferredLocations    String[] @map("preferred_locations")
-  remoteWorkPreference  Boolean  @default(false) @map("remote_work_preference")
-  
+  preferredJobTypes    String[] @map("preferred_job_types")
+  preferredLocations   String[] @map("preferred_locations")
+  remoteWorkPreference Boolean  @default(false) @map("remote_work_preference")
+
   // Salary expectations
   salaryMin      Decimal? @map("salary_min") @db.Decimal
   salaryMax      Decimal? @map("salary_max") @db.Decimal
-  salaryCurrency String  @default("USD") @map("salary_currency")
-  
+  salaryCurrency String   @default("USD") @map("salary_currency")
+
   // Privacy settings
   profilePublic         Boolean @default(true) @map("profile_public")
   showContactInfo       Boolean @default(false) @map("show_contact_info")
   allowRecruiterContact Boolean @default(true) @map("allow_recruiter_contact")
-  
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -112,16 +112,16 @@ model UserAnalytic {
 // ==========================================
 
 model Company {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
   description String?
   website     String?
-  logoUrl     String?   @map("logo_url")
+  logoUrl     String?  @map("logo_url")
   industry    String?
-  size        String?   // STARTUP, SMALL, MEDIUM, LARGE, ENTERPRISE
+  size        String? // STARTUP, SMALL, MEDIUM, LARGE, ENTERPRISE
   location    String?
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
   jobs Job[]
@@ -141,8 +141,8 @@ model Job {
   requirements        String[]
   responsibilities    String[]
   benefits            String[]
-  salaryMin           Decimal?   @map("salary_min") @db.Decimal
-  salaryMax           Decimal?   @map("salary_max") @db.Decimal
+  salaryMin           Decimal?  @map("salary_min") @db.Decimal
+  salaryMax           Decimal?  @map("salary_max") @db.Decimal
   salaryCurrency      String    @default("USD") @map("salary_currency")
   skills              String[]
   postedAt            DateTime  @default(now()) @map("posted_at") @db.Timestamptz(6)
@@ -154,28 +154,28 @@ model Job {
   updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
-  company         Company?         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  applications    JobApplication[]
-  savedJobs       SavedJob[]
+  company      Company?         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  applications JobApplication[]
+  savedJobs    SavedJob[]
 
   @@map("jobs")
 }
 
 model JobApplication {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  jobId       String    @map("job_id") @db.Uuid
-  userId      String    @map("user_id") @db.Uuid
-  resumeId    String?   @map("resume_id") @db.Uuid
-  coverLetter String?   @map("cover_letter")
-  status      String    @default("DRAFT") // DRAFT, SUBMITTED, UNDER_REVIEW, INTERVIEW, OFFER, REJECTED, ACCEPTED
-  appliedAt   DateTime  @default(now()) @map("applied_at") @db.Timestamptz(6)
-  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId       String   @map("job_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  resumeId    String?  @map("resume_id") @db.Uuid
+  coverLetter String?  @map("cover_letter")
+  status      String   @default("DRAFT") // DRAFT, SUBMITTED, UNDER_REVIEW, INTERVIEW, OFFER, REJECTED, ACCEPTED
+  appliedAt   DateTime @default(now()) @map("applied_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   notes       String?
 
   // Relations
-  job    Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user   Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resume Resume?  @relation(fields: [resumeId], references: [id])
+  job    Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user   Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume Resume? @relation(fields: [resumeId], references: [id])
 
   @@unique([jobId, userId])
   @@map("job_applications")
@@ -197,21 +197,21 @@ model SavedJob {
 }
 
 model JobAlert {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId         String   @map("user_id") @db.Uuid
-  title          String
-  query          String?
-  location       String?
-  jobTypes       String[] @map("job_types")
-  experienceLevel String? @map("experience_level")
-  salaryMin      Decimal?  @map("salary_min") @db.Decimal
-  salaryMax      Decimal?  @map("salary_max") @db.Decimal
-  isRemote       Boolean  @default(false) @map("is_remote")
-  isActive       Boolean  @default(true) @map("is_active")
-  frequency      String   @default("daily") // daily, weekly, instant
-  lastSent       DateTime? @map("last_sent") @db.Timestamptz(6)
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  title           String
+  query           String?
+  location        String?
+  jobTypes        String[]  @map("job_types")
+  experienceLevel String?   @map("experience_level")
+  salaryMin       Decimal?  @map("salary_min") @db.Decimal
+  salaryMax       Decimal?  @map("salary_max") @db.Decimal
+  isRemote        Boolean   @default(false) @map("is_remote")
+  isActive        Boolean   @default(true) @map("is_active")
+  frequency       String    @default("daily") // daily, weekly, instant
+  lastSent        DateTime? @map("last_sent") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
   user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -224,19 +224,19 @@ model JobAlert {
 // ==========================================
 
 model Resume {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId     String   @map("user_id") @db.Uuid
-  title      String
-  summary    String?
-  isDefault  Boolean  @default(false) @map("is_default")
-  fileName   String?  @map("file_name")
-  fileUrl    String?  @map("file_url")
-  fileSize   String?  @map("file_size")
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  title     String
+  summary   String?
+  isDefault Boolean  @default(false) @map("is_default")
+  fileName  String?  @map("file_name")
+  fileUrl   String?  @map("file_url")
+  fileSize  String?  @map("file_size")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
-  user           Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
   workExperiences WorkExperience[]
   educations      Education[]
   skills          Skill[]
@@ -270,18 +270,18 @@ model WorkExperience {
 }
 
 model Education {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  resumeId      String    @map("resume_id") @db.Uuid
-  institution   String
-  degree        String?   // HIGH_SCHOOL, ASSOCIATE, BACHELOR, MASTER, DOCTORAL, CERTIFICATE, DIPLOMA, OTHER
-  fieldOfStudy  String?   @map("field_of_study")
-  startDate     DateTime  @map("start_date") @db.Date
-  endDate       DateTime? @map("end_date") @db.Date
-  gpa           String?
-  description   String?
-  achievements  String[]
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  resumeId     String    @map("resume_id") @db.Uuid
+  institution  String
+  degree       String? // HIGH_SCHOOL, ASSOCIATE, BACHELOR, MASTER, DOCTORAL, CERTIFICATE, DIPLOMA, OTHER
+  fieldOfStudy String?   @map("field_of_study")
+  startDate    DateTime  @map("start_date") @db.Date
+  endDate      DateTime? @map("end_date") @db.Date
+  gpa          String?
+  description  String?
+  achievements String[]
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
   resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
@@ -293,7 +293,7 @@ model Skill {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   resumeId     String   @map("resume_id") @db.Uuid
   name         String
-  level        String?  // BEGINNER, INTERMEDIATE, ADVANCED, EXPERT
+  level        String? // BEGINNER, INTERMEDIATE, ADVANCED, EXPERT
   yearsOfExp   Int?     @map("years_of_experience")
   endorsements Int      @default(0)
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -348,7 +348,7 @@ model Language {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   resumeId    String   @map("resume_id") @db.Uuid
   name        String
-  proficiency String   // ELEMENTARY, LIMITED_WORKING, PROFESSIONAL_WORKING, FULL_PROFESSIONAL, NATIVE
+  proficiency String // ELEMENTARY, LIMITED_WORKING, PROFESSIONAL_WORKING, FULL_PROFESSIONAL, NATIVE
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -363,21 +363,21 @@ model Language {
 // ==========================================
 
 model InterviewSession {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId      String   @map("user_id") @db.Uuid
-  jobTitle    String   @map("job_title")
-  jobLevel    String   @map("job_level")
-  status      String   @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, ABANDONED
-  overallScore Int?    @map("overall_score")
-  feedback    String?
-  duration    Int?     // Duration in seconds
-  startedAt   DateTime @default(now()) @map("started_at") @db.Timestamptz(6)
-  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  jobTitle     String    @map("job_title")
+  jobLevel     String    @map("job_level")
+  status       String    @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, ABANDONED
+  overallScore Int?      @map("overall_score")
+  feedback     String?
+  duration     Int? // Duration in seconds
+  startedAt    DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedAt  DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
-  user      Profile              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      Profile             @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions InterviewQuestion[]
   responses InterviewResponse[]
 
@@ -388,8 +388,8 @@ model InterviewQuestion {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   sessionId  String   @map("session_id") @db.Uuid
   question   String
-  category   String   // BEHAVIORAL, TECHNICAL, SITUATIONAL, ROLE_SPECIFIC
-  difficulty String   // EASY, MEDIUM, HARD
+  category   String // BEHAVIORAL, TECHNICAL, SITUATIONAL, ROLE_SPECIFIC
+  difficulty String // EASY, MEDIUM, HARD
   order      Int
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -401,16 +401,16 @@ model InterviewQuestion {
 }
 
 model InterviewResponse {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sessionId   String   @map("session_id") @db.Uuid
-  questionId  String   @map("question_id") @db.Uuid
-  response    String
-  score       Int?     // 0-100
-  feedback    String?
-  strengths   String[]
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId    String   @map("session_id") @db.Uuid
+  questionId   String   @map("question_id") @db.Uuid
+  response     String
+  score        Int? // 0-100
+  feedback     String?
+  strengths    String[]
   improvements String[]
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
   session  InterviewSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -426,7 +426,7 @@ model InterviewResponse {
 model Notification {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId    String    @map("user_id") @db.Uuid
-  type      String    // JOB_ALERT, APPLICATION_UPDATE, INTERVIEW_SCHEDULED, SYSTEM
+  type      String // JOB_ALERT, APPLICATION_UPDATE, INTERVIEW_SCHEDULED, SYSTEM
   title     String
   message   String
   link      String?
@@ -448,7 +448,7 @@ model CreditPackage {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
   credits     Int
-  price       Decimal   @db.Decimal
+  price       Decimal  @db.Decimal
   currency    String   @default("USD")
   description String?
   isActive    Boolean  @default(true) @map("is_active")
@@ -462,8 +462,8 @@ model CreditPackage {
 model CreditTransaction {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId          String   @map("user_id") @db.Uuid
-  type            String   // PURCHASE, USAGE, REFUND, BONUS
-  amount          Int      // Positive for credits added, negative for credits used
+  type            String // PURCHASE, USAGE, REFUND, BONUS
+  amount          Int // Positive for credits added, negative for credits used
   balanceAfter    Int      @map("balance_after")
   reason          String?
   featureUsed     String?  @map("feature_used")
@@ -489,17 +489,17 @@ model FeatureCreditCost {
 }
 
 model UserSubscription {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId           String    @map("user_id") @db.Uuid
-  plan             String    // FREE, BASIC, PREMIUM, ENTERPRISE
-  status           String    // ACTIVE, CANCELLED, EXPIRED, PENDING
-  startDate        DateTime  @map("start_date") @db.Timestamptz(6)
-  endDate          DateTime? @map("end_date") @db.Timestamptz(6)
-  autoRenew        Boolean   @default(true) @map("auto_renew")
-  stripeCustomerId String?   @map("stripe_customer_id")
-  stripeSubscriptionId String? @map("stripe_subscription_id")
-  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String    @map("user_id") @db.Uuid
+  plan                 String // FREE, BASIC, PREMIUM, ENTERPRISE
+  status               String // ACTIVE, CANCELLED, EXPIRED, PENDING
+  startDate            DateTime  @map("start_date") @db.Timestamptz(6)
+  endDate              DateTime? @map("end_date") @db.Timestamptz(6)
+  autoRenew            Boolean   @default(true) @map("auto_renew")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @map("stripe_subscription_id")
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
   user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
