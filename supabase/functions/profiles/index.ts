@@ -112,74 +112,10 @@ Deno.serve(async (req) => {
 
 async function getCurrentProfile(supabaseClient: any, userId: string) {
   try {
-    // Fetch profile with resumes and their nested data
+    // Fetch profile first
     const { data: profile, error } = await supabaseClient
       .from("profiles")
-      .select(`
-        *,
-        resumes (
-          id,
-          title,
-          summary,
-          is_default,
-          created_at,
-          updated_at,
-          work_experiences (
-            id,
-            company,
-            position,
-            location,
-            start_date,
-            end_date,
-            is_current,
-            description,
-            achievements,
-            skills
-          ),
-          educations (
-            id,
-            institution,
-            degree,
-            field_of_study,
-            start_date,
-            end_date,
-            gpa,
-            description
-          ),
-          skills (
-            id,
-            name,
-            level,
-            years_of_experience,
-            endorsements
-          ),
-          certifications (
-            id,
-            name,
-            issuing_organization,
-            issue_date,
-            expiry_date,
-            credential_id,
-            credential_url
-          ),
-          projects (
-            id,
-            name,
-            description,
-            role,
-            start_date,
-            end_date,
-            url,
-            skills,
-            highlights
-          ),
-          languages (
-            id,
-            name,
-            proficiency
-          )
-        )
-      `)
+      .select("*")
       .eq("id", userId)
       .single();
 
@@ -207,63 +143,10 @@ async function getProfileById(
   userId: string,
 ) {
   try {
+    // Fetch profile data
     const { data: profile, error } = await supabaseClient
       .from("profiles")
-      .select(`
-        id,
-        first_name,
-        last_name,
-        bio,
-        location,
-        website,
-        linkedin_url,
-        github_url,
-        twitter_url,
-        portfolio_url,
-        current_position,
-        company,
-        years_of_experience,
-        availability_status,
-        preferred_work_type,
-        profile_visibility,
-        created_at,
-        updated_at,
-        resumes (
-          id,
-          title,
-          summary,
-          is_default,
-          work_experiences (
-            id,
-            company,
-            position,
-            location,
-            start_date,
-            end_date,
-            is_current,
-            description
-          ),
-          educations (
-            id,
-            institution,
-            degree,
-            field_of_study,
-            start_date,
-            end_date
-          ),
-          skills (
-            id,
-            name,
-            level
-          ),
-          projects (
-            id,
-            name,
-            description,
-            url
-          )
-        )
-      `)
+      .select("*")
       .eq("id", profileId)
       .single();
 
