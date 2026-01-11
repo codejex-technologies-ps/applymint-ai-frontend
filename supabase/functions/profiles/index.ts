@@ -1,82 +1,89 @@
 // Setup type definitions for built-in Supabase Runtime APIs
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
-import { corsHeaders } from '../_shared/cors.ts'
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { corsHeaders } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
   // Handle CORS
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // Create Supabase client
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: req.headers.get("Authorization")! },
         },
-      }
-    )
+      },
+    );
 
-    const url = new URL(req.url)
-    const pathParts = url.pathname.split('/')
-    const profileId = pathParts[pathParts.length - 1]
+    const url = new URL(req.url);
+    const pathParts = url.pathname.split("/");
+    const profileId = pathParts[pathParts.length - 1];
 
     switch (req.method) {
-      case 'GET':
-        if (profileId && profileId !== 'profiles') {
+      case "GET":
+        if (profileId && profileId !== "profiles") {
           // GET /profiles/:id - Get specific profile
-          return await getProfileById(supabaseClient, profileId)
+          return await getProfileById(supabaseClient, profileId);
         } else {
           // GET /profiles - Get current user's profile (requires auth)
-          return await getCurrentProfile(supabaseClient)
+          return await getCurrentProfile(supabaseClient);
         }
 
-      case 'PUT':
-        if (profileId && profileId !== 'profiles') {
+      case "PUT":
+        if (profileId && profileId !== "profiles") {
           // PUT /profiles/:id - Update specific profile
-          return await updateProfile(supabaseClient, profileId, req)
+          return await updateProfile(supabaseClient, profileId, req);
         } else {
           // PUT /profiles - Update current user's profile
-          return await updateCurrentProfile(supabaseClient, req)
+          return await updateCurrentProfile(supabaseClient, req);
         }
 
-      case 'POST':
+      case "POST":
         // POST /profiles - Create new profile (usually handled by auth triggers)
-        return await createProfile(supabaseClient, req)
+        return await createProfile(supabaseClient, req);
 
       default:
-        return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        return new Response(JSON.stringify({ error: "Method not allowed" }), {
           status: 405,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
     }
   } catch (error) {
-    console.error('Error:', error)
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    console.error("Error:", error);
+    return new Response(
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
-})
+});
 
 async function getCurrentProfile(supabaseClient: any) {
   try {
     // Get the current authenticated user
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    const { data: { user }, error: authError } = await supabaseClient.auth
+      .getUser();
 
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      console.log("Authentication error:", authError);
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { data: profile, error } = await supabaseClient
-      .from('profiles')
+      .from("profiles")
       .select(`
         *,
         work_experiences (
@@ -125,41 +132,43 @@ async function getCurrentProfile(supabaseClient: any) {
           proficiency_level
         )
       `)
-      .eq('id', user.id)
-      .single()
+      .eq("id", user.id)
+      .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return new Response(JSON.stringify({ error: 'Profile not found' }), {
+      if (error.code === "PGRST116") {
+        return new Response(JSON.stringify({ error: "Profile not found" }), {
           status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
-      throw error
+      throw error;
     }
 
     return new Response(JSON.stringify({ profile }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
 async function getProfileById(supabaseClient: any, profileId: string) {
   try {
     // Check if user is authenticated
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    const { data: { user }, error: authError } = await supabaseClient.auth
+      .getUser();
 
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      console.log("Authentication error:", authError);
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { data: profile, error } = await supabaseClient
-      .from('profiles')
+      .from("profiles")
       .select(`
         id,
         first_name,
@@ -209,155 +218,167 @@ async function getProfileById(supabaseClient: any, profileId: string) {
           repository_url
         )
       `)
-      .eq('id', profileId)
-      .single()
+      .eq("id", profileId)
+      .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return new Response(JSON.stringify({ error: 'Profile not found' }), {
+      if (error.code === "PGRST116") {
+        return new Response(JSON.stringify({ error: "Profile not found" }), {
           status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
-      throw error
+      throw error;
     }
 
     // Check profile visibility
-    if (profile.profile_visibility === 'private' && profile.id !== user.id) {
-      return new Response(JSON.stringify({ error: 'Profile is private' }), {
+    if (profile.profile_visibility === "private" && profile.id !== user.id) {
+      return new Response(JSON.stringify({ error: "Profile is private" }), {
         status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ profile }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
 async function updateCurrentProfile(supabaseClient: any, req: Request) {
   try {
     // Get the current authenticated user
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    const { data: { user }, error: authError } = await supabaseClient.auth
+      .getUser();
 
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const updates = await req.json()
+    const updates = await req.json();
 
     // Remove fields that shouldn't be updated directly
-    delete updates.id
-    delete updates.email // Email should be updated through auth
-    delete updates.created_at
+    delete updates.id;
+    delete updates.email; // Email should be updated through auth
+    delete updates.created_at;
 
     const { data: profile, error } = await supabaseClient
-      .from('profiles')
+      .from("profiles")
       .update({
         ...updates,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', user.id)
+      .eq("id", user.id)
       .select()
-      .single()
+      .single();
 
-    if (error) throw error
+    if (error) throw error;
 
     return new Response(JSON.stringify({ profile }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
-async function updateProfile(supabaseClient: any, profileId: string, req: Request) {
+async function updateProfile(
+  supabaseClient: any,
+  profileId: string,
+  req: Request,
+) {
   try {
     // Get the current authenticated user
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    const { data: { user }, error: authError } = await supabaseClient.auth
+      .getUser();
 
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Only allow users to update their own profile
     if (user.id !== profileId) {
-      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const updates = await req.json()
+    const updates = await req.json();
 
     // Remove fields that shouldn't be updated directly
-    delete updates.id
-    delete updates.email
-    delete updates.created_at
+    delete updates.id;
+    delete updates.email;
+    delete updates.created_at;
 
     const { data: profile, error } = await supabaseClient
-      .from('profiles')
+      .from("profiles")
       .update({
         ...updates,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', profileId)
+      .eq("id", profileId)
       .select()
-      .single()
+      .single();
 
-    if (error) throw error
+    if (error) throw error;
 
     return new Response(JSON.stringify({ profile }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
 async function createProfile(supabaseClient: any, req: Request) {
   try {
-    const profileData = await req.json()
+    const profileData = await req.json();
 
     // Validate required fields
     if (!profileData.id || !profileData.email) {
-      return new Response(JSON.stringify({ error: 'Profile ID and email are required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return new Response(
+        JSON.stringify({ error: "Profile ID and email are required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const { data: profile, error } = await supabaseClient
-      .from('profiles')
+      .from("profiles")
       .insert([profileData])
       .select()
-      .single()
+      .single();
 
     if (error) {
-      if (error.code === '23505') { // Unique constraint violation
-        return new Response(JSON.stringify({ error: 'Profile already exists' }), {
-          status: 409,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+      if (error.code === "23505") { // Unique constraint violation
+        return new Response(
+          JSON.stringify({ error: "Profile already exists" }),
+          {
+            status: 409,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
-      throw error
+      throw error;
     }
 
     return new Response(JSON.stringify({ profile }), {
       status: 201,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
