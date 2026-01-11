@@ -1,0 +1,1744 @@
+openapi: 3.0.3
+info:
+  title: ApplyMint AI Edge Functions API
+  description: |
+    RESTful API for ApplyMint AI platform providing user profile management and job listings functionality.
+    
+    ## Authentication
+    All endpoints require Bearer token authentication. Include the following headers:
+    - `Authorization: Bearer <access_token>` - Your Supabase access token
+    - `apikey: <anon_key>` - Your Supabase anonymous key
+    
+    ## Admin Access
+    Admin endpoints require the user to have `app_metadata.role = "admin"` in their Supabase auth.users record.
+    
+    ## Base URL
+    `https://<project-ref>.supabase.co/functions/v1`
+  version: 1.0.0
+  contact:
+    name: ApplyMint AI Support
+    email: support@applymint.ai
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://pidjubyaqzoitmbixzbf.supabase.co/functions/v1
+    description: Production server
+
+tags:
+  - name: Profiles
+    description: User profile management endpoints
+  - name: Profiles - Admin
+    description: Admin-only profile management endpoints
+  - name: Jobs
+    description: Job listings and search endpoints
+  - name: Jobs - Saved
+    description: User saved jobs management
+  - name: Jobs - Admin
+    description: Admin-only job management endpoints
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase access token obtained from authentication
+    ApiKey:
+      type: apiKey
+      in: header
+      name: apikey
+      description: Supabase anonymous key
+
+  schemas:
+    # ==========================================
+    # PROFILE SCHEMAS
+    # ==========================================
+    Profile:
+      type: object
+      description: User profile information
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Profile ID (same as user ID)
+          example: "f2d2a18a-1691-48ea-b7e9-caf233262a3c"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+        first_name:
+          type: string
+          nullable: true
+          description: User's first name
+          example: "John"
+        last_name:
+          type: string
+          nullable: true
+          description: User's last name
+          example: "Doe"
+        phone_number:
+          type: string
+          nullable: true
+          description: User's phone number
+          example: "+1234567890"
+        created_at:
+          type: string
+          format: date-time
+          description: Profile creation timestamp
+          example: "2025-09-14T11:06:43.792Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Profile last update timestamp
+          example: "2026-01-11T14:32:54.001Z"
+      required:
+        - id
+        - email
+
+    ProfileCreateRequest:
+      type: object
+      description: Request body for creating a profile
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address (required)
+          example: "john.doe@example.com"
+        first_name:
+          type: string
+          description: User's first name
+          example: "John"
+        last_name:
+          type: string
+          description: User's last name
+          example: "Doe"
+        phone_number:
+          type: string
+          description: User's phone number
+          example: "+1234567890"
+      required:
+        - email
+
+    ProfileUpdateRequest:
+      type: object
+      description: Request body for updating a profile
+      properties:
+        first_name:
+          type: string
+          description: User's first name
+          example: "Jane"
+        last_name:
+          type: string
+          description: User's last name
+          example: "Smith"
+        phone_number:
+          type: string
+          description: User's phone number
+          example: "+0987654321"
+
+    ProfileBulkCreateRequest:
+      type: object
+      description: Request body for bulk creating profiles (admin only)
+      properties:
+        profiles:
+          type: array
+          maxItems: 100
+          description: Array of profiles to create (max 100)
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: Profile/user ID
+              email:
+                type: string
+                format: email
+                description: User's email address
+              first_name:
+                type: string
+              last_name:
+                type: string
+              phone_number:
+                type: string
+            required:
+              - id
+              - email
+      required:
+        - profiles
+      example:
+        profiles:
+          - id: "uuid-1"
+            email: "user1@example.com"
+            first_name: "User"
+            last_name: "One"
+          - id: "uuid-2"
+            email: "user2@example.com"
+            first_name: "User"
+            last_name: "Two"
+
+    ProfileBulkDeleteRequest:
+      type: object
+      description: Request body for bulk deleting profiles (admin only)
+      properties:
+        ids:
+          type: array
+          maxItems: 100
+          description: Array of profile IDs to delete (max 100)
+          items:
+            type: string
+            format: uuid
+      required:
+        - ids
+      example:
+        ids:
+          - "f2d2a18a-1691-48ea-b7e9-caf233262a3c"
+          - "a1b2c3d4-5678-90ab-cdef-123456789abc"
+
+    # ==========================================
+    # JOB SCHEMAS
+    # ==========================================
+    Company:
+      type: object
+      description: Company information
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+        name:
+          type: string
+          example: "ApplyMint AI"
+        description:
+          type: string
+          nullable: true
+          example: "AI-powered hiring assistant and job search optimizer"
+        website:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://www.applymint.ai"
+        logo_url:
+          type: string
+          nullable: true
+          example: "/logos/applymint.png"
+        industry:
+          type: string
+          nullable: true
+          example: "Software"
+        size:
+          type: string
+          nullable: true
+          enum: [SMALL, MEDIUM, LARGE, ENTERPRISE]
+          example: "SMALL"
+        location:
+          type: string
+          nullable: true
+          example: "Hyderabad, India"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CompanyInput:
+      type: object
+      description: Company data for inline creation when creating a job
+      properties:
+        name:
+          type: string
+          description: Company name (required)
+          example: "TechStartup Inc"
+        description:
+          type: string
+          example: "Innovative technology company"
+        website:
+          type: string
+          format: uri
+          example: "https://techstartup.com"
+        logo_url:
+          type: string
+          example: "/logos/techstartup.png"
+        industry:
+          type: string
+          example: "Technology"
+        size:
+          type: string
+          enum: [SMALL, MEDIUM, LARGE, ENTERPRISE]
+          example: "SMALL"
+        location:
+          type: string
+          example: "San Francisco, CA"
+      required:
+        - name
+
+    JobCategory:
+      type: object
+      description: Job category/domain information
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "e1085322-1612-4802-ae53-18bbed49d499"
+        name:
+          type: string
+          example: "Engineering"
+        description:
+          type: string
+          nullable: true
+          example: "All engineering roles"
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Parent category ID for hierarchical categories
+
+    CategoryInput:
+      type: object
+      description: Category data for inline creation when creating a job
+      properties:
+        name:
+          type: string
+          description: Category name
+          example: "Frontend Development"
+        description:
+          type: string
+          example: "Frontend and UI development roles"
+        parent_id:
+          type: string
+          format: uuid
+          description: Parent category ID for subcategories
+      required:
+        - name
+
+    JobCategoryMapping:
+      type: object
+      description: Mapping between job and category
+      properties:
+        category_id:
+          type: string
+          format: uuid
+        job_categories:
+          $ref: '#/components/schemas/JobCategory'
+
+    Job:
+      type: object
+      description: Job listing information
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "7432ffe4-fac5-45af-9026-70cfbaeecea9"
+        title:
+          type: string
+          example: "Junior Software Engineer"
+        company_id:
+          type: string
+          format: uuid
+          nullable: true
+          example: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+        location:
+          type: string
+          example: "Hyderabad, India"
+        is_remote:
+          type: boolean
+          default: false
+          example: false
+        job_type:
+          type: string
+          nullable: true
+          enum: [FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP, FREELANCE]
+          example: "FULL_TIME"
+        experience_level:
+          type: string
+          nullable: true
+          enum: [ENTRY, MID, SENIOR, EXECUTIVE]
+          example: "ENTRY"
+        description:
+          type: string
+          description: Job description (supports Markdown format)
+          example: "## About the Role\n\nWork on product features and collaborate with cross-functional teams."
+        requirements:
+          type: array
+          items:
+            type: string
+          example: ["BSc in Computer Science", "1+ years experience", "Node.js/TypeScript"]
+        responsibilities:
+          type: array
+          items:
+            type: string
+          example: ["Write clean code", "Participate in code reviews", "Work with product teams"]
+        benefits:
+          type: array
+          items:
+            type: string
+          example: ["Health Insurance", "Flexible hours", "Paid time off"]
+        salary_min:
+          type: number
+          nullable: true
+          example: 8000
+        salary_max:
+          type: number
+          nullable: true
+          example: 12000
+        salary_currency:
+          type: string
+          default: "USD"
+          example: "USD"
+        skills:
+          type: array
+          items:
+            type: string
+          example: ["TypeScript", "Node.js", "Postgres"]
+        posted_at:
+          type: string
+          format: date-time
+          example: "2025-11-14T17:50:48.627Z"
+        application_deadline:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+          default: true
+          example: true
+        external_job_id:
+          type: string
+          nullable: true
+          description: ID from external job board
+        external_source:
+          type: string
+          nullable: true
+          description: Source of external job listing
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        companies:
+          $ref: '#/components/schemas/Company'
+        job_category_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobCategoryMapping'
+      required:
+        - id
+        - title
+        - location
+        - description
+
+    JobCreateRequest:
+      type: object
+      description: Request body for creating a job (admin only)
+      properties:
+        title:
+          type: string
+          description: Job title (required)
+          example: "Full Stack Developer"
+        location:
+          type: string
+          description: Job location (required)
+          example: "Remote"
+        description:
+          type: string
+          description: Job description in Markdown format (required)
+          example: "## About the Role\n\nWe are looking for a **Full Stack Developer** to join our team."
+        is_remote:
+          type: boolean
+          default: false
+          example: true
+        job_type:
+          type: string
+          enum: [FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP, FREELANCE]
+          example: "FULL_TIME"
+        experience_level:
+          type: string
+          enum: [ENTRY, MID, SENIOR, EXECUTIVE]
+          example: "MID"
+        requirements:
+          type: array
+          items:
+            type: string
+          example: ["React", "Node.js", "TypeScript"]
+        responsibilities:
+          type: array
+          items:
+            type: string
+          example: ["Build features", "Code review", "Mentoring"]
+        benefits:
+          type: array
+          items:
+            type: string
+          example: ["Remote work", "Health insurance", "Stock options"]
+        salary_min:
+          type: number
+          example: 100000
+        salary_max:
+          type: number
+          example: 150000
+        salary_currency:
+          type: string
+          default: "USD"
+          example: "USD"
+        skills:
+          type: array
+          items:
+            type: string
+          example: ["React", "Node.js", "TypeScript", "PostgreSQL"]
+        application_deadline:
+          type: string
+          format: date-time
+          example: "2026-03-01T00:00:00Z"
+        company_id:
+          type: string
+          format: uuid
+          description: Reference to existing company
+          example: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+        company:
+          $ref: '#/components/schemas/CompanyInput'
+          description: Inline company creation (if company_id not provided)
+        category_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Reference to existing category IDs
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryInput'
+          description: Inline category creation (matched by name or created)
+        external_job_id:
+          type: string
+          description: External job board ID
+        external_source:
+          type: string
+          description: External job source name
+      required:
+        - title
+        - location
+        - description
+
+    JobUpdateRequest:
+      type: object
+      description: Request body for updating a job (admin only)
+      properties:
+        title:
+          type: string
+          example: "Senior Full Stack Developer"
+        location:
+          type: string
+        description:
+          type: string
+          description: Job description in Markdown format
+        is_remote:
+          type: boolean
+        job_type:
+          type: string
+          enum: [FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP, FREELANCE]
+        experience_level:
+          type: string
+          enum: [ENTRY, MID, SENIOR, EXECUTIVE]
+        requirements:
+          type: array
+          items:
+            type: string
+        responsibilities:
+          type: array
+          items:
+            type: string
+        benefits:
+          type: array
+          items:
+            type: string
+        salary_min:
+          type: number
+        salary_max:
+          type: number
+          example: 180000
+        salary_currency:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        application_deadline:
+          type: string
+          format: date-time
+        company_id:
+          type: string
+          format: uuid
+        company:
+          $ref: '#/components/schemas/CompanyInput'
+        category_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryInput'
+        is_active:
+          type: boolean
+
+    JobBulkCreateRequest:
+      type: object
+      description: Request body for bulk creating jobs (admin only)
+      properties:
+        jobs:
+          type: array
+          maxItems: 100
+          description: Array of jobs to create (max 100)
+          items:
+            $ref: '#/components/schemas/JobCreateRequest'
+      required:
+        - jobs
+      example:
+        jobs:
+          - title: "DevOps Engineer"
+            location: "New York"
+            description: "Build CI/CD pipelines"
+            requirements: ["Docker", "K8s"]
+            company:
+              name: "CloudOps Inc"
+          - title: "QA Engineer"
+            location: "Austin"
+            description: "Test automation specialist"
+            requirements: ["Selenium", "Jest"]
+            company_id: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+
+    SavedJob:
+      type: object
+      description: A job saved by the user
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "97b0b9c0-4959-47d6-8623-6f1e301b0c32"
+        job_id:
+          type: string
+          format: uuid
+          example: "7432ffe4-fac5-45af-9026-70cfbaeecea9"
+        user_id:
+          type: string
+          format: uuid
+          example: "f2d2a18a-1691-48ea-b7e9-caf233262a3c"
+        saved_at:
+          type: string
+          format: date-time
+          example: "2026-01-11T14:43:00.715Z"
+        notes:
+          type: string
+          nullable: true
+          description: User notes about the saved job
+          example: "Interesting entry level role!"
+        jobs:
+          $ref: '#/components/schemas/Job'
+
+    SaveJobRequest:
+      type: object
+      description: Request body for saving a job
+      properties:
+        notes:
+          type: string
+          description: Optional notes about why you're saving this job
+          example: "Great company, interesting tech stack"
+
+    # ==========================================
+    # COMMON SCHEMAS
+    # ==========================================
+    Pagination:
+      type: object
+      description: Pagination information
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
+        totalPages:
+          type: integer
+          example: 5
+        hasNextPage:
+          type: boolean
+          example: true
+        hasPrevPage:
+          type: boolean
+          example: false
+
+    ErrorResponse:
+      type: object
+      description: Error response
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Unauthorized: You can only access your own profile"
+      required:
+        - error
+
+    SuccessMessage:
+      type: object
+      description: Generic success message
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully"
+
+security:
+  - BearerAuth: []
+  - ApiKey: []
+
+paths:
+  # ==========================================
+  # PROFILE ENDPOINTS
+  # ==========================================
+  /profiles:
+    get:
+      tags:
+        - Profiles - Admin
+      summary: Get all profiles (Admin only)
+      description: |
+        Retrieve all profiles with pagination, search, and sorting.
+        **Requires admin role** (`app_metadata.role = "admin"`)
+      operationId: getAllProfiles
+      parameters:
+        - name: page
+          in: query
+          description: "Page number (default: 1)"
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: "Number of items per page (default: 20, max: 100)"
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          description: Search term to filter profiles by email, first_name, or last_name
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            enum: [email, first_name, last_name, created_at, updated_at]
+            default: created_at
+        - name: order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profiles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Profile'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                profiles:
+                  - id: "f2d2a18a-1691-48ea-b7e9-caf233262a3c"
+                    email: "nitins9868@gmail.com"
+                    first_name: "Nitin"
+                    last_name: "Sharma"
+                    phone_number: null
+                    created_at: "2025-09-14T11:06:43.792Z"
+                    updated_at: "2026-01-11T14:32:54.001Z"
+                pagination:
+                  page: 1
+                  limit: 20
+                  total: 2
+                  totalPages: 1
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Forbidden: Admin access required"
+
+    post:
+      tags:
+        - Profiles
+      summary: Create a new profile
+      description: Create a new profile for the authenticated user. The profile ID will be set to the user's ID.
+      operationId: createProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileCreateRequest'
+            example:
+              email: "john.doe@example.com"
+              first_name: "John"
+              last_name: "Doe"
+              phone_number: "+1234567890"
+      responses:
+        '201':
+          description: Profile created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    $ref: '#/components/schemas/Profile'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "email is required"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - profile already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Profile already exists"
+
+  /profiles/{id}:
+    get:
+      tags:
+        - Profiles
+      summary: Get profile by ID
+      description: |
+        Retrieve a profile by ID. Users can only view their own profile.
+        Admins can view any profile.
+      operationId: getProfileById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Profile ID (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    $ref: '#/components/schemas/Profile'
+              example:
+                profile:
+                  id: "f2d2a18a-1691-48ea-b7e9-caf233262a3c"
+                  email: "nitins9868@gmail.com"
+                  first_name: "Nitin"
+                  last_name: "Sharma"
+                  phone_number: null
+                  created_at: "2025-09-14T11:06:43.792Z"
+                  updated_at: "2026-01-11T14:32:54.001Z"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - cannot access other user's profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized: You can only access your own profile"
+        '404':
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Profile not found"
+
+    put:
+      tags:
+        - Profiles
+      summary: Update profile
+      description: |
+        Update a profile by ID. Users can only update their own profile.
+        Admins can update any profile.
+      operationId: updateProfile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Profile ID (UUID)
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+            example:
+              first_name: "Jane"
+              last_name: "Smith"
+              phone_number: "+0987654321"
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    $ref: '#/components/schemas/Profile'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - cannot update other user's profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Profiles
+      summary: Delete profile
+      description: |
+        Delete a profile by ID. Users can only delete their own profile.
+        Admins can delete any profile.
+      operationId: deleteProfile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Profile ID (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Profile deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile deleted successfully"
+                  id:
+                    type: string
+                    format: uuid
+              example:
+                message: "Profile deleted successfully"
+                id: "f2d2a18a-1691-48ea-b7e9-caf233262a3c"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - cannot delete other user's profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /profiles/bulk:
+    post:
+      tags:
+        - Profiles - Admin
+      summary: Bulk create profiles (Admin only)
+      description: |
+        Create multiple profiles at once. Maximum 100 profiles per request.
+        **Requires admin role** (`app_metadata.role = "admin"`)
+      operationId: bulkCreateProfiles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileBulkCreateRequest'
+      responses:
+        '201':
+          description: Profiles created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Successfully created 2 profiles"
+                  profiles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Profile'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "profiles array is required and must not be empty"
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Profiles - Admin
+      summary: Bulk delete profiles (Admin only)
+      description: |
+        Delete multiple profiles at once. Maximum 100 profiles per request.
+        **Requires admin role** (`app_metadata.role = "admin"`)
+      operationId: bulkDeleteProfiles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileBulkDeleteRequest'
+      responses:
+        '200':
+          description: Profiles deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Successfully deleted profiles"
+                  deletedCount:
+                    type: integer
+                    example: 2
+                  ids:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ids array is required and must not be empty"
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ==========================================
+  # JOB ENDPOINTS
+  # ==========================================
+  /jobs:
+    get:
+      tags:
+        - Jobs
+      summary: Get all active jobs
+      description: |
+        Retrieve all active jobs with comprehensive filtering, pagination, and sorting options.
+        Available to all authenticated users.
+      operationId: getAllJobs
+      parameters:
+        - name: page
+          in: query
+          description: "Page number (default: 1)"
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: "Number of items per page (default: 20, max: 100)"
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: location
+          in: query
+          description: Filter by location (partial match)
+          schema:
+            type: string
+          example: "Hyderabad"
+        - name: jobType
+          in: query
+          description: Filter by job type
+          schema:
+            type: string
+            enum: [FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP, FREELANCE]
+        - name: experienceLevel
+          in: query
+          description: Filter by experience level
+          schema:
+            type: string
+            enum: [ENTRY, MID, SENIOR, EXECUTIVE]
+        - name: isRemote
+          in: query
+          description: Filter by remote work availability
+          schema:
+            type: boolean
+        - name: companyId
+          in: query
+          description: Filter by company ID
+          schema:
+            type: string
+            format: uuid
+        - name: categoryId
+          in: query
+          description: Filter by category ID
+          schema:
+            type: string
+            format: uuid
+        - name: skills
+          in: query
+          description: Filter by required skills (comma-separated)
+          schema:
+            type: string
+          example: "TypeScript,Node.js,React"
+        - name: salaryMin
+          in: query
+          description: Minimum salary filter
+          schema:
+            type: number
+        - name: salaryMax
+          in: query
+          description: Maximum salary filter
+          schema:
+            type: number
+        - name: query
+          in: query
+          description: Search in title and description
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: "Field to sort by (default: posted_at)"
+          schema:
+            type: string
+            enum: [posted_at, salary_min, salary_max, title, created_at]
+            default: posted_at
+        - name: order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                jobs:
+                  - id: "7432ffe4-fac5-45af-9026-70cfbaeecea9"
+                    title: "Junior Software Engineer"
+                    company_id: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+                    location: "Hyderabad, India"
+                    is_remote: false
+                    job_type: "FULL_TIME"
+                    experience_level: "ENTRY"
+                    description: "Work on product features..."
+                    requirements: ["BSc in Computer Science", "1+ years experience"]
+                    salary_min: 8000
+                    salary_max: 12000
+                    skills: ["TypeScript", "Node.js", "Postgres"]
+                    companies:
+                      id: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+                      name: "ApplyMint AI"
+                      industry: "Software"
+                      logo_url: "/logos/applymint.png"
+                    job_category_mappings:
+                      - category_id: "e1085322-1612-4802-ae53-18bbed49d499"
+                        job_categories:
+                          id: "e1085322-1612-4802-ae53-18bbed49d499"
+                          name: "Engineering"
+                pagination:
+                  page: 1
+                  limit: 20
+                  total: 3
+                  totalPages: 1
+                  hasNextPage: false
+                  hasPrevPage: false
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Jobs - Admin
+      summary: Create a new job (Admin only)
+      description: |
+        Create a new job listing. Supports inline creation of companies and categories.
+        **Requires admin role** (`app_metadata.role = "admin"`)
+        
+        ### Company Creation
+        You can either:
+        - Reference an existing company with `company_id`
+        - Create a new company inline with the `company` object
+        
+        ### Category Creation
+        You can either:
+        - Reference existing categories with `category_ids`
+        - Create/match categories inline with the `categories` array (matched by name)
+        
+        ### Markdown Support
+        The `description` field supports full Markdown formatting.
+      operationId: createJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobCreateRequest'
+            examples:
+              withExistingCompany:
+                summary: Job with existing company
+                value:
+                  title: "Backend Developer"
+                  location: "Remote"
+                  description: "## About the Role\n\nWe need a backend developer..."
+                  is_remote: true
+                  job_type: "FULL_TIME"
+                  experience_level: "MID"
+                  requirements: ["Go", "PostgreSQL"]
+                  salary_min: 120000
+                  salary_max: 160000
+                  skills: ["Go", "PostgreSQL", "Docker"]
+                  company_id: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+                  category_ids: ["e1085322-1612-4802-ae53-18bbed49d499"]
+              withInlineCompany:
+                summary: Job with inline company creation
+                value:
+                  title: "Full Stack Developer"
+                  location: "Remote"
+                  description: "## About the Role\n\nJoin our team as a Full Stack Developer!"
+                  is_remote: true
+                  job_type: "FULL_TIME"
+                  experience_level: "MID"
+                  requirements: ["React", "Node.js"]
+                  salary_min: 100000
+                  salary_max: 150000
+                  skills: ["React", "Node.js", "TypeScript"]
+                  company:
+                    name: "TechStartup Inc"
+                    industry: "Technology"
+                    website: "https://techstartup.com"
+                  categories:
+                    - name: "Engineering"
+                    - name: "Frontend Development"
+      responses:
+        '201':
+          description: Job created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job:
+                    $ref: '#/components/schemas/Job'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingTitle:
+                  value:
+                    error: "title is required"
+                missingDescription:
+                  value:
+                    error: "description is required (markdown format supported)"
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Forbidden: Admin access required"
+
+  /jobs/{id}:
+    get:
+      tags:
+        - Jobs
+      summary: Get job by ID
+      description: |
+        Retrieve a single job by ID with full company and category details.
+        Only returns active jobs.
+      operationId: getJobById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Job ID (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job:
+                    $ref: '#/components/schemas/Job'
+              example:
+                job:
+                  id: "7432ffe4-fac5-45af-9026-70cfbaeecea9"
+                  title: "Junior Software Engineer"
+                  company_id: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+                  location: "Hyderabad, India"
+                  is_remote: false
+                  job_type: "FULL_TIME"
+                  experience_level: "ENTRY"
+                  description: "Work on product features and collaborate with cross-functional teams."
+                  requirements: ["BSc in Computer Science", "1+ years experience"]
+                  responsibilities: ["Write clean code", "Participate in code reviews"]
+                  benefits: ["Health Insurance", "Flexible hours"]
+                  salary_min: 8000
+                  salary_max: 12000
+                  salary_currency: "USD"
+                  skills: ["TypeScript", "Node.js", "Postgres"]
+                  is_active: true
+                  companies:
+                    id: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+                    name: "ApplyMint AI"
+                    description: "AI-powered hiring assistant"
+                    website: "https://www.applymint.ai"
+                    industry: "Software"
+                    size: "SMALL"
+                    location: "Hyderabad, India"
+                    logo_url: "/logos/applymint.png"
+                  job_category_mappings:
+                    - category_id: "e1085322-1612-4802-ae53-18bbed49d499"
+                      job_categories:
+                        id: "e1085322-1612-4802-ae53-18bbed49d499"
+                        name: "Engineering"
+                        description: "All engineering roles"
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Job not found"
+
+    put:
+      tags:
+        - Jobs - Admin
+      summary: Update a job (Admin only)
+      description: |
+        Update an existing job. All fields are optional.
+        **Requires admin role** (`app_metadata.role = "admin"`)
+      operationId: updateJob
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Job ID (UUID)
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobUpdateRequest'
+            example:
+              title: "Senior Full Stack Developer"
+              salary_max: 180000
+              description: "# Updated Role\n\nLooking for Senior Full Stack Developer"
+      responses:
+        '200':
+          description: Job updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job:
+                    $ref: '#/components/schemas/Job'
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Jobs - Admin
+      summary: Delete a job (Admin only)
+      description: |
+        Soft delete a job by setting `is_active` to `false`.
+        **Requires admin role** (`app_metadata.role = "admin"`)
+      operationId: deleteJob
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Job ID (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Job deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Job deleted successfully"
+                  id:
+                    type: string
+                    format: uuid
+              example:
+                message: "Job deleted successfully"
+                id: "84e9e259-1d8f-4970-8124-13ef138d20d8"
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /jobs/bulk:
+    post:
+      tags:
+        - Jobs - Admin
+      summary: Bulk create jobs (Admin only)
+      description: |
+        Create multiple jobs at once. Maximum 100 jobs per request.
+        Each job can have inline company and category creation.
+        **Requires admin role** (`app_metadata.role = "admin"`)
+      operationId: bulkCreateJobs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobBulkCreateRequest'
+      responses:
+        '201':
+          description: Jobs created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Created 2 jobs"
+                  jobs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+                  errors:
+                    type: array
+                    description: Errors for jobs that failed to create
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        error:
+                          type: string
+              example:
+                message: "Created 2 jobs"
+                jobs:
+                  - id: "082bf75f-ce81-4d9f-8e8a-8a2c8beb695e"
+                    title: "DevOps Engineer"
+                    location: "New York"
+                  - id: "7cb95b1d-4b56-46ab-a392-2f54af34122f"
+                    title: "QA Engineer"
+                    location: "Austin"
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                emptyArray:
+                  value:
+                    error: "jobs array is required and must not be empty"
+                tooMany:
+                  value:
+                    error: "Maximum 100 jobs can be created at once"
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /jobs/save/{jobId}:
+    post:
+      tags:
+        - Jobs - Saved
+      summary: Save a job
+      description: Save a job to the user's saved jobs list with optional notes.
+      operationId: saveJob
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: Job ID to save (UUID)
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveJobRequest'
+            example:
+              notes: "Interesting entry level role!"
+      responses:
+        '201':
+          description: Job saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Job saved successfully"
+                  savedJob:
+                    $ref: '#/components/schemas/SavedJob'
+              example:
+                message: "Job saved successfully"
+                savedJob:
+                  id: "97b0b9c0-4959-47d6-8623-6f1e301b0c32"
+                  job_id: "7432ffe4-fac5-45af-9026-70cfbaeecea9"
+                  user_id: "f2d2a18a-1691-48ea-b7e9-caf233262a3c"
+                  saved_at: "2026-01-11T14:43:00.715Z"
+                  notes: "Interesting entry level role!"
+                  jobs:
+                    id: "7432ffe4-fac5-45af-9026-70cfbaeecea9"
+                    title: "Junior Software Engineer"
+                    location: "Hyderabad, India"
+                    companies:
+                      id: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+                      name: "ApplyMint AI"
+                      logo_url: "/logos/applymint.png"
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Job not found"
+
+    delete:
+      tags:
+        - Jobs - Saved
+      summary: Unsave a job
+      description: Remove a job from the user's saved jobs list.
+      operationId: unsaveJob
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: Job ID to unsave (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Job removed from saved jobs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Job removed from saved jobs"
+                  jobId:
+                    type: string
+                    format: uuid
+              example:
+                message: "Job removed from saved jobs"
+                jobId: "7432ffe4-fac5-45af-9026-70cfbaeecea9"
+
+  /jobs/saved:
+    get:
+      tags:
+        - Jobs - Saved
+      summary: Get saved jobs
+      description: Retrieve the current user's saved jobs with pagination.
+      operationId: getSavedJobs
+      parameters:
+        - name: page
+          in: query
+          description: "Page number (default: 1)"
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: "Number of items per page (default: 20, max: 100)"
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  savedJobs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SavedJob'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      totalPages:
+                        type: integer
+              example:
+                savedJobs:
+                  - id: "97b0b9c0-4959-47d6-8623-6f1e301b0c32"
+                    job_id: "7432ffe4-fac5-45af-9026-70cfbaeecea9"
+                    user_id: "f2d2a18a-1691-48ea-b7e9-caf233262a3c"
+                    saved_at: "2026-01-11T14:43:00.715Z"
+                    notes: "Interesting entry level role!"
+                    jobs:
+                      id: "7432ffe4-fac5-45af-9026-70cfbaeecea9"
+                      title: "Junior Software Engineer"
+                      location: "Hyderabad, India"
+                      job_type: "FULL_TIME"
+                      experience_level: "ENTRY"
+                      salary_min: 8000
+                      salary_max: 12000
+                      companies:
+                        id: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+                        name: "ApplyMint AI"
+                        industry: "Software"
+                        logo_url: "/logos/applymint.png"
+                pagination:
+                  page: 1
+                  limit: 20
+                  total: 1
+                  totalPages: 1

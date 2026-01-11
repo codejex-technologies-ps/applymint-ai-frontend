@@ -19,9 +19,9 @@ interface TokenPayload {
 interface ProfileData {
   id?: string;
   email: string;
-  first_name?: string;
-  last_name?: string;
-  phone_number?: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  phone_number?: string | null;
 }
 
 // ==========================================
