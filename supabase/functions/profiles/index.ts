@@ -3,6 +3,20 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { corsHeaders } from "../_shared/cors.ts";
 
+// Helper function to decode JWT and extract user ID
+function getUserIdFromToken(authHeader: string): string | null {
+  try {
+    const token = authHeader.replace("Bearer ", "");
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    const payload = JSON.parse(atob(parts[1]));
+    return payload.sub || null;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle CORS
   if (req.method === "OPTIONS") {
@@ -10,13 +24,41 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Create Supabase client
+    // Get authorization header
+    const authHeader = req.headers.get("Authorization");
+
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing Authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Extract user ID from JWT token
+    const userId = getUserIdFromToken(authHeader);
+
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: "Invalid token" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Create Supabase client with service role for database operations
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
         global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
+          headers: {
+            Authorization: authHeader,
+          },
         },
       },
     );
@@ -29,19 +71,19 @@ Deno.serve(async (req) => {
       case "GET":
         if (profileId && profileId !== "profiles") {
           // GET /profiles/:id - Get specific profile
-          return await getProfileById(supabaseClient, profileId);
+          return await getProfileById(supabaseClient, profileId, userId);
         } else {
           // GET /profiles - Get current user's profile (requires auth)
-          return await getCurrentProfile(supabaseClient);
+          return await getCurrentProfile(supabaseClient, userId);
         }
 
       case "PUT":
         if (profileId && profileId !== "profiles") {
           // PUT /profiles/:id - Update specific profile
-          return await updateProfile(supabaseClient, profileId, req);
+          return await updateProfile(supabaseClient, profileId, userId, req);
         } else {
           // PUT /profiles - Update current user's profile
-          return await updateCurrentProfile(supabaseClient, req);
+          return await updateCurrentProfile(supabaseClient, userId, req);
         }
 
       case "POST":
@@ -68,71 +110,77 @@ Deno.serve(async (req) => {
   }
 });
 
-async function getCurrentProfile(supabaseClient: any) {
+async function getCurrentProfile(supabaseClient: any, userId: string) {
   try {
-    // Get the current authenticated user
-    const { data: { user }, error: authError } = await supabaseClient.auth
-      .getUser();
-
-    if (authError || !user) {
-      console.log("Authentication error:", authError);
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    // Fetch profile with resumes and their nested data
     const { data: profile, error } = await supabaseClient
       .from("profiles")
       .select(`
         *,
-        work_experiences (
+        resumes (
           id,
-          job_title,
-          company_name,
-          start_date,
-          end_date,
-          is_current,
-          description
-        ),
-        educations (
-          id,
-          institution,
-          degree,
-          field_of_study,
-          start_date,
-          end_date,
-          grade
-        ),
-        skills (
-          id,
-          name,
-          proficiency_level
-        ),
-        certifications (
-          id,
-          name,
-          issuer,
-          issue_date,
-          expiry_date,
-          credential_id
-        ),
-        projects (
-          id,
-          name,
-          description,
-          start_date,
-          end_date,
-          project_url,
-          repository_url
-        ),
-        languages (
-          id,
-          name,
-          proficiency_level
+          title,
+          summary,
+          is_default,
+          created_at,
+          updated_at,
+          work_experiences (
+            id,
+            company,
+            position,
+            location,
+            start_date,
+            end_date,
+            is_current,
+            description,
+            achievements,
+            skills
+          ),
+          educations (
+            id,
+            institution,
+            degree,
+            field_of_study,
+            start_date,
+            end_date,
+            gpa,
+            description
+          ),
+          skills (
+            id,
+            name,
+            level,
+            years_of_experience,
+            endorsements
+          ),
+          certifications (
+            id,
+            name,
+            issuing_organization,
+            issue_date,
+            expiry_date,
+            credential_id,
+            credential_url
+          ),
+          projects (
+            id,
+            name,
+            description,
+            role,
+            start_date,
+            end_date,
+            url,
+            skills,
+            highlights
+          ),
+          languages (
+            id,
+            name,
+            proficiency
+          )
         )
       `)
-      .eq("id", user.id)
+      .eq("id", userId)
       .single();
 
     if (error) {
@@ -153,20 +201,12 @@ async function getCurrentProfile(supabaseClient: any) {
   }
 }
 
-async function getProfileById(supabaseClient: any, profileId: string) {
+async function getProfileById(
+  supabaseClient: any,
+  profileId: string,
+  userId: string,
+) {
   try {
-    // Check if user is authenticated
-    const { data: { user }, error: authError } = await supabaseClient.auth
-      .getUser();
-
-    if (authError || !user) {
-      console.log("Authentication error:", authError);
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const { data: profile, error } = await supabaseClient
       .from("profiles")
       .select(`
@@ -188,34 +228,40 @@ async function getProfileById(supabaseClient: any, profileId: string) {
         profile_visibility,
         created_at,
         updated_at,
-        work_experiences (
+        resumes (
           id,
-          job_title,
-          company_name,
-          start_date,
-          end_date,
-          is_current,
-          description
-        ),
-        educations (
-          id,
-          institution,
-          degree,
-          field_of_study,
-          start_date,
-          end_date
-        ),
-        skills (
-          id,
-          name,
-          proficiency_level
-        ),
-        projects (
-          id,
-          name,
-          description,
-          project_url,
-          repository_url
+          title,
+          summary,
+          is_default,
+          work_experiences (
+            id,
+            company,
+            position,
+            location,
+            start_date,
+            end_date,
+            is_current,
+            description
+          ),
+          educations (
+            id,
+            institution,
+            degree,
+            field_of_study,
+            start_date,
+            end_date
+          ),
+          skills (
+            id,
+            name,
+            level
+          ),
+          projects (
+            id,
+            name,
+            description,
+            url
+          )
         )
       `)
       .eq("id", profileId)
@@ -232,7 +278,7 @@ async function getProfileById(supabaseClient: any, profileId: string) {
     }
 
     // Check profile visibility
-    if (profile.profile_visibility === "private" && profile.id !== user.id) {
+    if (profile.profile_visibility === "private" && profile.id !== userId) {
       return new Response(JSON.stringify({ error: "Profile is private" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -247,19 +293,12 @@ async function getProfileById(supabaseClient: any, profileId: string) {
   }
 }
 
-async function updateCurrentProfile(supabaseClient: any, req: Request) {
+async function updateCurrentProfile(
+  supabaseClient: any,
+  userId: string,
+  req: Request,
+) {
   try {
-    // Get the current authenticated user
-    const { data: { user }, error: authError } = await supabaseClient.auth
-      .getUser();
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const updates = await req.json();
 
     // Remove fields that shouldn't be updated directly
@@ -273,7 +312,7 @@ async function updateCurrentProfile(supabaseClient: any, req: Request) {
         ...updates,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", user.id)
+      .eq("id", userId)
       .select()
       .single();
 
@@ -290,22 +329,12 @@ async function updateCurrentProfile(supabaseClient: any, req: Request) {
 async function updateProfile(
   supabaseClient: any,
   profileId: string,
+  userId: string,
   req: Request,
 ) {
   try {
-    // Get the current authenticated user
-    const { data: { user }, error: authError } = await supabaseClient.auth
-      .getUser();
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     // Only allow users to update their own profile
-    if (user.id !== profileId) {
+    if (userId !== profileId) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
