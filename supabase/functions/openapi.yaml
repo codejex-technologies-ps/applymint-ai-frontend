@@ -37,6 +37,10 @@ tags:
     description: User saved jobs management
   - name: Jobs - Admin
     description: Admin-only job management endpoints
+  - name: Companies
+    description: Company information endpoints
+  - name: Companies - Admin
+    description: Admin-only company management endpoints
 
 components:
   securitySchemes:
@@ -238,6 +242,11 @@ components:
           type: string
           nullable: true
           example: "Hyderabad, India"
+        is_active:
+          type: boolean
+          description: Whether the company is active (soft delete flag)
+          default: true
+          example: true
         created_at:
           type: string
           format: date-time
@@ -275,6 +284,139 @@ components:
           example: "San Francisco, CA"
       required:
         - name
+
+    CompanyWithJobs:
+      type: object
+      description: Company with associated jobs
+      allOf:
+        - $ref: '#/components/schemas/Company'
+        - type: object
+          properties:
+            jobs:
+              type: array
+              description: Jobs posted by this company
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  title:
+                    type: string
+                  location:
+                    type: string
+                  job_type:
+                    type: string
+                  experience_level:
+                    type: string
+                  is_remote:
+                    type: boolean
+                  posted_at:
+                    type: string
+                    format: date-time
+                  is_active:
+                    type: boolean
+
+    CompanyCreateRequest:
+      type: object
+      description: Request body for creating a company
+      properties:
+        name:
+          type: string
+          description: Company name (required, must be unique)
+          example: "Innovative Labs"
+        description:
+          type: string
+          example: "Cutting-edge research company"
+        website:
+          type: string
+          format: uri
+          example: "https://innovativelabs.com"
+        logo_url:
+          type: string
+          example: "/logos/innovativelabs.png"
+        industry:
+          type: string
+          example: "Research"
+        size:
+          type: string
+          enum: [SMALL, MEDIUM, LARGE, ENTERPRISE]
+          example: "SMALL"
+        location:
+          type: string
+          example: "Boston, MA"
+      required:
+        - name
+
+    CompanyUpdateRequest:
+      type: object
+      description: Request body for updating a company
+      properties:
+        name:
+          type: string
+          example: "Updated Company Name"
+        description:
+          type: string
+          example: "Updated company description"
+        website:
+          type: string
+          format: uri
+          example: "https://updated-website.com"
+        logo_url:
+          type: string
+          example: "/logos/updated.png"
+        industry:
+          type: string
+          example: "Technology"
+        size:
+          type: string
+          enum: [SMALL, MEDIUM, LARGE, ENTERPRISE]
+          example: "MEDIUM"
+        location:
+          type: string
+          example: "New York, NY"
+        is_active:
+          type: boolean
+          description: Set to false to soft-delete the company
+          example: true
+
+    BulkCompanyCreateRequest:
+      type: object
+      description: Request body for bulk creating companies
+      properties:
+        companies:
+          type: array
+          description: Array of companies to create (max 100)
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/CompanyCreateRequest'
+      required:
+        - companies
+
+    BulkCompanyDeleteRequest:
+      type: object
+      description: Request body for bulk deleting companies
+      properties:
+        company_ids:
+          type: array
+          description: Array of company IDs to delete (max 100)
+          maxItems: 100
+          items:
+            type: string
+            format: uuid
+      required:
+        - company_ids
+
+    CompanyListResponse:
+      type: object
+      description: Paginated list of companies
+      properties:
+        companies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Company'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
 
     JobCategory:
       type: object
@@ -1742,3 +1884,583 @@ paths:
                   limit: 20
                   total: 1
                   totalPages: 1
+
+  # ==========================================
+  # COMPANIES ENDPOINTS
+  # ==========================================
+  /companies:
+    get:
+      summary: List all companies
+      description: |
+        Retrieves a paginated list of active companies. Supports filtering by industry, size, location, and text search.
+        By default, only active companies are returned. Use `includeInactive=true` to include soft-deleted companies.
+      tags:
+        - Companies
+      security:
+        - BearerAuth: []
+          ApiKey: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: "Number of items per page (default: 10, max: 100)"
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: industry
+          in: query
+          description: Filter by industry (partial match, case-insensitive)
+          schema:
+            type: string
+          example: "Software"
+        - name: size
+          in: query
+          description: Filter by company size (exact match)
+          schema:
+            type: string
+            enum: [SMALL, MEDIUM, LARGE, ENTERPRISE]
+          example: "MEDIUM"
+        - name: location
+          in: query
+          description: Filter by location (partial match, case-insensitive)
+          schema:
+            type: string
+          example: "India"
+        - name: query
+          in: query
+          description: Full-text search across name, description, and industry
+          schema:
+            type: string
+          example: "tech"
+        - name: includeInactive
+          in: query
+          description: Include soft-deleted companies in results
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Successful response with paginated companies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyListResponse'
+              example:
+                companies:
+                  - id: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+                    name: "ApplyMint AI"
+                    description: "AI-powered hiring assistant and job search optimizer"
+                    website: "https://www.applymint.ai"
+                    logo_url: "/logos/applymint.png"
+                    industry: "Software"
+                    size: "SMALL"
+                    location: "Hyderabad, India"
+                    is_active: true
+                    created_at: "2025-11-14T17:50:48.627Z"
+                    updated_at: "2025-11-14T17:50:48.627Z"
+                  - id: "e18ce757-d377-4c60-9234-0488e223d52a"
+                    name: "TechNova"
+                    description: "Next-gen cloud infrastructure and developer tools"
+                    website: "https://www.technova.com"
+                    logo_url: "/logos/technova.png"
+                    industry: "Cloud"
+                    size: "LARGE"
+                    location: "Remote"
+                    is_active: true
+                    created_at: "2025-11-14T17:50:48.627Z"
+                    updated_at: "2025-11-14T17:50:48.627Z"
+                pagination:
+                  page: 1
+                  limit: 10
+                  totalCount: 6
+                  totalPages: 1
+                  hasNextPage: false
+                  hasPrevPage: false
+        '401':
+          description: Unauthorized - Missing or invalid authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Authorization header required"
+
+    post:
+      summary: Create a new company (Admin)
+      description: |
+        Creates a new company. Requires admin privileges.
+        Company names must be unique - attempting to create a duplicate will return an error with the existing company's ID.
+      tags:
+        - Companies - Admin
+      security:
+        - BearerAuth: []
+          ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyCreateRequest'
+            examples:
+              basic:
+                summary: Basic company creation
+                value:
+                  name: "Innovative Labs"
+                  industry: "Research"
+                  location: "Boston, MA"
+              full:
+                summary: Full company details
+                value:
+                  name: "Innovative Labs"
+                  description: "Cutting-edge research company specializing in AI and ML"
+                  website: "https://innovativelabs.com"
+                  logo_url: "/logos/innovativelabs.png"
+                  industry: "Research"
+                  size: "SMALL"
+                  location: "Boston, MA"
+      responses:
+        '201':
+          description: Company created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  company:
+                    $ref: '#/components/schemas/Company'
+              example:
+                company:
+                  id: "9cc0b3a9-957b-4b15-8398-f2fb739385db"
+                  name: "Innovative Labs"
+                  description: "Cutting-edge research company specializing in AI and ML"
+                  website: "https://innovativelabs.com"
+                  logo_url: "/logos/innovativelabs.png"
+                  industry: "Research"
+                  size: "SMALL"
+                  location: "Boston, MA"
+                  is_active: true
+                  created_at: "2026-01-11T16:07:44.740Z"
+                  updated_at: "2026-01-11T16:07:44.740Z"
+        '400':
+          description: Bad request - Invalid data or duplicate company name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missing_name:
+                  summary: Missing company name
+                  value:
+                    error: "Company name is required"
+                duplicate:
+                  summary: Duplicate company name
+                  value:
+                    error: "A company with this name already exists"
+                    existing_company_id: "5b400c2e-eb2c-4144-a03e-3296b1dde647"
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Admin access required to create companies"
+
+  /companies/{companyId}:
+    get:
+      summary: Get company by ID
+      description: |
+        Retrieves a single company by its ID, including all associated jobs.
+        Only returns active companies (is_active=true).
+        Jobs array is filtered to only include active jobs.
+      tags:
+        - Companies
+      security:
+        - BearerAuth: []
+          ApiKey: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          description: The UUID of the company to retrieve
+          schema:
+            type: string
+            format: uuid
+          example: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+      responses:
+        '200':
+          description: Successful response with company details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  company:
+                    $ref: '#/components/schemas/CompanyWithJobs'
+              example:
+                company:
+                  id: "0a68855f-f66f-4e02-bf0c-009dfe662338"
+                  name: "ApplyMint AI"
+                  description: "AI-powered hiring assistant and job search optimizer"
+                  website: "https://www.applymint.ai"
+                  logo_url: "/logos/applymint.png"
+                  industry: "Software"
+                  size: "SMALL"
+                  location: "Hyderabad, India"
+                  is_active: true
+                  created_at: "2025-11-14T17:50:48.627Z"
+                  updated_at: "2025-11-14T17:50:48.627Z"
+                  jobs:
+                    - id: "7432ffe4-fac5-45af-9026-70cfbaeecea9"
+                      title: "Junior Software Engineer"
+                      location: "Hyderabad, India"
+                      job_type: "FULL_TIME"
+                      experience_level: "ENTRY"
+                      is_remote: false
+                      posted_at: "2025-11-14T17:50:48.627Z"
+                      is_active: true
+        '400':
+          description: Bad request - Invalid company ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid company ID format"
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Company not found"
+
+    put:
+      summary: Update company (Admin)
+      description: |
+        Updates an existing company. Requires admin privileges.
+        Only provided fields will be updated. The `id` and `created_at` fields cannot be modified.
+        The `updated_at` timestamp is automatically set to the current time.
+      tags:
+        - Companies - Admin
+      security:
+        - BearerAuth: []
+          ApiKey: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          description: The UUID of the company to update
+          schema:
+            type: string
+            format: uuid
+          example: "9cc0b3a9-957b-4b15-8398-f2fb739385db"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyUpdateRequest'
+            examples:
+              partial_update:
+                summary: Partial update
+                value:
+                  description: "Updated description for the company"
+                  size: "MEDIUM"
+              reactivate:
+                summary: Reactivate a soft-deleted company
+                value:
+                  is_active: true
+      responses:
+        '200':
+          description: Company updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  company:
+                    $ref: '#/components/schemas/Company'
+              example:
+                company:
+                  id: "9cc0b3a9-957b-4b15-8398-f2fb739385db"
+                  name: "Innovative Labs"
+                  description: "Updated: Leading research company in AI and ML"
+                  website: "https://innovativelabs.com"
+                  logo_url: "/logos/innovativelabs.png"
+                  industry: "Research"
+                  size: "MEDIUM"
+                  location: "Boston, MA"
+                  is_active: true
+                  created_at: "2026-01-11T16:07:44.740Z"
+                  updated_at: "2026-01-11T16:08:01.029Z"
+        '400':
+          description: Bad request - Invalid company ID format or no fields to update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_id:
+                  value:
+                    error: "Invalid company ID format"
+                no_fields:
+                  value:
+                    error: "No valid fields to update"
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Admin access required to update companies"
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Company not found"
+
+    delete:
+      summary: Soft delete company (Admin)
+      description: |
+        Soft deletes a company by setting `is_active` to false. Requires admin privileges.
+        Companies with active jobs cannot be deleted - all jobs must be deactivated first.
+        The company data is preserved and can be reactivated using PUT with `is_active: true`.
+      tags:
+        - Companies - Admin
+      security:
+        - BearerAuth: []
+          ApiKey: []
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          description: The UUID of the company to delete
+          schema:
+            type: string
+            format: uuid
+          example: "9cc0b3a9-957b-4b15-8398-f2fb739385db"
+      responses:
+        '200':
+          description: Company deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  company_id:
+                    type: string
+                    format: uuid
+                  company_name:
+                    type: string
+              example:
+                message: "Company deleted successfully"
+                company_id: "9cc0b3a9-957b-4b15-8398-f2fb739385db"
+                company_name: "Innovative Labs"
+        '400':
+          description: Bad request - Invalid ID or company has active jobs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_id:
+                  value:
+                    error: "Invalid company ID format"
+                has_active_jobs:
+                  value:
+                    error: "Cannot delete company with active jobs. Please deactivate all jobs first."
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Admin access required to delete companies"
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Company not found"
+
+  /companies/bulk:
+    post:
+      summary: Bulk create companies (Admin)
+      description: |
+        Creates multiple companies in a single request. Requires admin privileges.
+        Maximum of 100 companies per request. Each company must have a unique name.
+        If any company has a duplicate name, it will be skipped and reported in the response.
+      tags:
+        - Companies - Admin
+      security:
+        - BearerAuth: []
+          ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkCompanyCreateRequest'
+            example:
+              companies:
+                - name: "Bulk Company 1"
+                  industry: "Finance"
+                  location: "NYC"
+                - name: "Bulk Company 2"
+                  industry: "Healthcare"
+                  location: "LA"
+                  size: "MEDIUM"
+      responses:
+        '201':
+          description: Companies created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  companies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Company'
+              example:
+                message: "Created 2 companies"
+                companies:
+                  - id: "892aab47-4672-435a-90d2-e760369da4de"
+                    name: "Bulk Company 1"
+                    description: null
+                    website: null
+                    logo_url: null
+                    industry: "Finance"
+                    size: null
+                    location: "NYC"
+                    is_active: true
+                    created_at: "2026-01-11T16:09:12.517Z"
+                    updated_at: "2026-01-11T16:09:12.517Z"
+                  - id: "f86a8829-921c-4cab-9c87-a613242bc9c3"
+                    name: "Bulk Company 2"
+                    description: null
+                    website: null
+                    logo_url: null
+                    industry: "Healthcare"
+                    size: "MEDIUM"
+                    location: "LA"
+                    is_active: true
+                    created_at: "2026-01-11T16:09:12.517Z"
+                    updated_at: "2026-01-11T16:09:12.517Z"
+        '400':
+          description: Bad request - Invalid data or exceeds limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missing_array:
+                  value:
+                    error: "Request body must contain a 'companies' array"
+                exceeds_limit:
+                  value:
+                    error: "Cannot create more than 100 companies at once"
+                empty_array:
+                  value:
+                    error: "Companies array cannot be empty"
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Admin access required to create companies"
+
+    delete:
+      summary: Bulk delete companies (Admin)
+      description: |
+        Soft deletes multiple companies in a single request. Requires admin privileges.
+        Maximum of 100 companies per request. Companies with active jobs will be skipped.
+      tags:
+        - Companies - Admin
+      security:
+        - BearerAuth: []
+          ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkCompanyDeleteRequest'
+            example:
+              company_ids:
+                - "892aab47-4672-435a-90d2-e760369da4de"
+                - "f86a8829-921c-4cab-9c87-a613242bc9c3"
+      responses:
+        '200':
+          description: Companies deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  deleted_companies:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+              example:
+                message: "Deleted 2 companies"
+                deleted_companies:
+                  - id: "892aab47-4672-435a-90d2-e760369da4de"
+                    name: "Bulk Company 1"
+                  - id: "f86a8829-921c-4cab-9c87-a613242bc9c3"
+                    name: "Bulk Company 2"
+        '400':
+          description: Bad request - Invalid data or exceeds limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missing_array:
+                  value:
+                    error: "Request body must contain a 'company_ids' array"
+                exceeds_limit:
+                  value:
+                    error: "Cannot delete more than 100 companies at once"
+                invalid_uuid:
+                  value:
+                    error: "Invalid company ID format at index 0"
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Admin access required to delete companies"

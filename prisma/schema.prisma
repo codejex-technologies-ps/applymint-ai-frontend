@@ -454,10 +454,12 @@ model companies {
   industry    String?
   size        String?
   location    String?
+  is_active   Boolean   @default(true)
   created_at  DateTime? @default(now()) @db.Timestamptz(6)
   updated_at  DateTime? @default(now()) @db.Timestamptz(6)
   jobs        jobs[]
 
+  @@index([is_active])
   @@schema("public")
 }
 
